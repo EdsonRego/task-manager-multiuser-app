@@ -1,0 +1,106 @@
+/* ===============================
+   TASK MANAGER — CUSTOM THEME
+   Azul corporativo inspirado no SAP Fiori
+   =============================== */
+
+:root {
+  --primary: #0a6ed1;       /* Azul SAP principal */
+  --primary-light: #b3d4fc; /* Azul claro */
+  --secondary: #003366;     /* Azul escuro corporativo */
+  --background: #f4f7fb;    /* Fundo claro */
+  --text-dark: #1a1a1a;
+  --text-light: #ffffff;
+  --border-radius: 8px;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-dark);
+  font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+}
+
+/* Navbar corporativa */
+.navbar {
+  background-color: var(--primary) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+  font-weight: 700;
+  color: var(--text-light) !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar-brand img {
+  height: 28px;
+}
+
+/* Botões */
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary);
+  border-color: var(--secondary);
+}
+
+.btn-outline-light {
+  border-radius: var(--border-radius);
+}
+
+/* Cartões */
+.card {
+  border-radius: var(--border-radius);
+  border: none;
+  background-color: #ffffff;
+}
+
+.card-title {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* Tabelas */
+.table {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.table thead {
+  background-color: var(--primary);
+  color: var(--text-light);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: var(--primary-light);
+}
+
+/* Inputs */
+.form-control, .form-select {
+  border-radius: var(--border-radius);
+  border: 1px solid #cfd8dc;
+  box-shadow: none;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 4px rgba(10, 110, 209, 0.3);
+}
+
+.nav-link {
+  margin-left: 1rem;
+  transition: color 0.2s ease-in-out;
+}
+
+.nav-link:hover {
+  color: #b3d4fc !important;
+}
+
+.navbar-toggler {
+  border: none !important;
+}

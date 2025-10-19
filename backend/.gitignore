@@ -4,6 +4,16 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Logs and reports ###
+*.log
+/logs/
+/test-output/
+
+### Local configuration ###
+.env
+application-local.properties
+application-local.yml
+
 ### STS ###
 .apt_generated
 .classpath

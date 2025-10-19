@@ -1,0 +1,187 @@
+/* ===============================
+   🎨 ESTILO CORPORATIVO SAP BLUE
+   =============================== */
+
+:root {
+  --primary: #0d6efd;        /* azul destaque */
+  --primary-light: #e3f2fd;  /* azul clarinho (fundo) */
+  --secondary: #084b8a;      /* azul escuro corporativo */
+  --text-color: #212529;     /* texto padrão */
+  --bg-light: #f4f7fb;       /* fundo claro */
+}
+
+/* ===== Reset global e fundo geral (remove faixas) ===== */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: linear-gradient(180deg, #e3f2fd 0%, #f4f7fb 100%) !important;
+  color: var(--text-color);
+  font-family: "Segoe UI", Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ===============================
+   NAVBAR (topo)
+   =============================== */
+.navbar {
+  background-color: var(--secondary) !important;
+  height: 70px; /* altura consistente */
+  display: flex;
+  align-items: center;
+  border-bottom: 4px solid var(--primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* remove folgas internas do container da navbar */
+.navbar .container {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Logotipo na navbar */
+.app-logo {
+  height: 100px !important;   /* garante logo grande */
+  width: auto !important;
+  object-fit: contain;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+.app-logo:hover {
+  transform: scale(1.05);
+  filter: brightness(1.15);
+}
+
+/* Links da navbar */
+.nav-link {
+  font-size: 1.15rem !important; /* maior e legível */
+  font-weight: 600 !important;
+  margin-left: 1rem !important;
+  margin-right: 1rem !important;
+  color: #ffffff !important;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+.nav-link:hover {
+  color: #ffc107 !important; /* amarelo SAP no hover */
+  transform: scale(1.05);
+}
+
+/* ===============================
+   LAYOUT: Login e Register
+   =============================== */
+.login-container,
+.register-container {
+  width: 100vw;
+  min-height: calc(100vh - 70px); /* desconta a navbar */
+  margin: 0;
+  background: linear-gradient(180deg, #e3f2fd 0%, #f4f7fb 100%);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 40px; /* aproxima o card da navbar */
+}
+
+/* Cards gerais (Home, Login, Register) */
+.card {
+  border: none;
+  border-radius: 12px;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+.card:hover {
+  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Títulos dos cards */
+.card-title {
+  font-weight: 600;
+  font-size: 1.15rem;
+}
+
+/* ===============================
+   HOME (dashboard)
+   =============================== */
+.container-fluid {
+  padding-bottom: 90px; /* espaço para o footer fixo não cobrir conteúdo */
+}
+
+/* ===============================
+   FOOTER (fixo e responsivo)
+   =============================== */
+.footer {
+  background-color: var(--secondary);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 55px; /* padrão desktop ~2/3 da navbar */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  z-index: 1000;
+  border-top: 2px solid #0a66c2; /* linha sutil superior */
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Ícones sociais no footer */
+.social-icon {
+  font-size: 1.5rem;
+  color: #ffffff;
+  transition: transform 0.3s ease, color 0.3s ease, filter 0.3s ease;
+  margin: 0 8px;
+}
+.social-icon.linkedin:hover {
+  color: #0a66c2; /* azul oficial LinkedIn */
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 6px #0a66c2);
+}
+.social-icon.github:hover {
+  color: #ffffff;
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 6px #bbbbbb);
+}
+
+/* ===============================
+   RESPONSIVIDADE
+   =============================== */
+@media (max-width: 992px) {
+  .app-logo {
+    height: 80px !important; /* reduz um pouco em tablets */
+  }
+  .nav-link {
+    font-size: 1.05rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-logo {
+    height: 60px !important; /* celulares médios */
+  }
+  .nav-link {
+    font-size: 0.95rem !important;
+  }
+  .footer {
+    height: 45px;
+  }
+  .social-icon {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-logo {
+    height: 48px !important; /* celulares pequenos */
+  }
+  .nav-link {
+    font-size: 0.9rem !important;
+  }
+  .footer {
+    height: 40px;
+  }
+  .social-icon {
+    font-size: 1rem;
+  }
+  .footer .text-white-50 {
+    font-size: 0.7rem;
+  }
+}
