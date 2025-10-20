@@ -1,4 +1,5 @@
-import { User } from "./User";
+// frontend/src/types/Task.ts
+import type { User } from "./User";
 
 export interface Task {
   id?: number;

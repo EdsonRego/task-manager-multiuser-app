@@ -1,0 +1,98 @@
+/* ===== TaskSearch.css ===== */
+
+/* Container principal */
+.task-search-container {
+  background: linear-gradient(180deg, #e3f2fd 0%, #f4f7fb 100%);
+  min-height: calc(100vh - 130px);
+  padding: 2rem 1rem;
+}
+
+/* Card de filtros */
+.task-search-card {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 0 auto 2rem auto;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.task-search-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Título do card */
+.task-search-card .card-title {
+  font-weight: 600;
+  color: #0d47a1;
+  letter-spacing: 0.02em;
+}
+
+/* Campos de formulário */
+.task-search-card .form-control,
+.task-search-card .form-select {
+  border-radius: 0.5rem;
+  border: 1px solid #d0d7de;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-search-card .form-control:focus,
+.task-search-card .form-select:focus {
+  border-color: #0d47a1;
+  box-shadow: 0 0 0 0.15rem rgba(13, 71, 161, 0.2);
+}
+
+/* Botões */
+.task-search-card .btn-primary {
+  background-color: #0d47a1;
+  border-color: #0d47a1;
+}
+
+.task-search-card .btn-primary:hover {
+  background-color: #1565c0;
+  border-color: #1565c0;
+}
+
+.task-search-card .btn-outline-primary {
+  border-color: #0d47a1;
+  color: #0d47a1;
+}
+
+.task-search-card .btn-outline-primary:hover {
+  background-color: #0d47a1;
+  color: #fff;
+}
+
+/* Espaçamento dos botões */
+.task-search-card .btn {
+  min-width: 130px;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+  .task-search-card {
+    padding: 1.5rem;
+  }
+
+  .task-search-card .row > div {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 576px) {
+  .task-search-card .row > div {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .task-search-card .btn {
+    width: 100%;
+  }
+
+  .task-search-card .d-flex.gap-3 {
+    flex-direction: column;
+    gap: 0.75rem !important;
+  }
+}

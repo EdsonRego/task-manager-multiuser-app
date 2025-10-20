@@ -2,31 +2,33 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import RegisterUser from "./components/RegisterUser";
-import Home from "./pages/Home";
+import TaskRegister from "./pages/TaskRegister";
+import Dashboard from "./pages/Dashboard";
+import TaskSearch from "./pages/TaskSearch"; // ✅ import corrigido
 import NotFound from "./pages/NotFound";
 import NavigationBar from "./components/NavigationBar";
-import "./styles/ui.css";
 import Footer from "./components/Footer";
+import "./styles/ui.css";
 
 const App: React.FC = () => {
-  console.log("✅ App com rotas reais renderizado");
+  console.log("✅ App renderizado com novas rotas");
 
   return (
     <Router>
-      {/* ✅ Navbar corporativa fixa no topo */}
       <NavigationBar />
 
-      {/* ✅ Container principal de rotas */}
-      <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+      <div style={{ paddingBottom: "120px" }}>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<RegisterUser />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="/task-register" element={<TaskRegister />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/task-search" element={<TaskSearch />} /> {/* ✅ posição corrigida */}
+          <Route path="*" element={<NotFound />} /> {/* ✅ sempre por último */}
         </Routes>
-        {/* ✅ Footer fixo */}
-        <Footer />
       </div>
+
+      <Footer />
     </Router>
   );
 };

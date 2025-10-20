@@ -1,11 +1,11 @@
+// frontend/src/pages/TaskRegister.tsx
 import React, { useState } from "react";
 import TaskForm from "../components/TaskForm";
-import TaskList from "../components/TaskList";
 import AlertMessage from "../components/AlertMessage";
 import ToastNotification from "../components/ToastNotification";
 import { UI_CONFIG } from "../config/ui";
 
-const Home: React.FC = () => {
+const TaskRegister: React.FC = () => {
   const [alert, setAlert] = useState<{
     type: "success" | "danger" | "warning" | "info";
     message: string;
@@ -39,10 +39,10 @@ const Home: React.FC = () => {
 
   return (
     <div
-      className="container-fluid py-4"
+      className="container py-4"
       style={{
         background: "linear-gradient(180deg, #e3f2fd 0%, #f4f7fb 100%)",
-        minHeight: "calc(100vh - 130px)", // ajusta considerando navbar + footer
+        minHeight: "calc(100vh - 130px)",
       }}
     >
       {alert && (
@@ -54,25 +54,14 @@ const Home: React.FC = () => {
       )}
 
       <h1 className="text-center text-primary fw-bold mb-4">
-        📋 Task Manager Dashboard
+        📝 Task Registration
       </h1>
 
-      <div className="row justify-content-center px-3">
-        <div className="col-md-4 mb-4">
-          <div className="card shadow-sm p-3">
-            <h5 className="card-title text-success text-center">
-              Create New Task
-            </h5>
-            <TaskForm onAlert={handleAlert} />
-          </div>
-        </div>
-
-        <div className="col-md-8">
-          <div className="card shadow-sm p-3">
-            <h5 className="card-title text-info text-center">All Tasks</h5>
-            <TaskList />
-          </div>
-        </div>
+      <div className="card shadow-sm p-4 mx-auto" style={{ maxWidth: "600px" }}>
+        <h5 className="card-title text-success text-center mb-3">
+          Create New Task
+        </h5>
+        <TaskForm onAlert={handleAlert} />
       </div>
 
       <ToastNotification
@@ -85,4 +74,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default TaskRegister;

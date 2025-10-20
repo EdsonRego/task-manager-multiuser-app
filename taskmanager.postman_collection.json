@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "Task Manager API",
+    "_postman_id": "7b36c7ac-5678-47a9-9321-1b32ff9a64a5",
+    "description": "Collection of all API endpoints for Task Manager backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "http://localhost:8080/api/users", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "users"] }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Edson\",\n  \"lastName\": \"Rego\",\n  \"email\": \"edsonxrego@gmail.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/users", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "users"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Get All Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "http://localhost:8080/api/tasks", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "tasks"] }
+          }
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plannedDescription\": \"Prepare monthly report\",\n  \"dueDate\": \"2025-10-31\",\n  \"responsible\": {\n    \"email\": \"edsonxrego@gmail.com\"\n  }\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/tasks", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "tasks"] }
+          }
+        },
+        {
+          "name": "Search Tasks - Example 1 (All)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "http://localhost:8080/api/tasks/search", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "tasks", "search"] }
+          }
+        },
+        {
+          "name": "Search Tasks - By Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/tasks/search?status=Pending",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "tasks", "search"],
+              "query": [{ "key": "status", "value": "Pending" }]
+            }
+          }
+        },
+        {
+          "name": "Search Tasks - By Responsible ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/tasks/search?responsibleId=1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "tasks", "search"],
+              "query": [{ "key": "responsibleId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Search Tasks - By Due Date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/tasks/search?dueDate=2025-10-30",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "tasks", "search"],
+              "query": [{ "key": "dueDate", "value": "2025-10-30" }]
+            }
+          }
+        },
+        {
+          "name": "Search Tasks - Multiple Filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/tasks/search?status=Pending&responsibleId=1&dueDate=2025-10-30",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "tasks", "search"],
+              "query": [
+                { "key": "status", "value": "Pending" },
+                { "key": "responsibleId", "value": "1" },
+                { "key": "dueDate", "value": "2025-10-30" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

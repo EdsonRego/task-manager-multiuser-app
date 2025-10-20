@@ -1,0 +1,91 @@
+/* ===== TaskList.css (unificado) ===== */
+
+/* Container geral da tabela */
+.task-list-container {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-top: 1rem; /* add */
+}
+
+/* Tabela com cantos arredondados */
+.table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Cabeçalho da tabela */
+.task-list-container thead {
+  background-color: #003366; /* Azul SAP escuro (mantido) */
+  color: #ffffff;
+}
+
+.task-list-container th {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Linhas e células */
+.task-list-container td,
+.task-list-container th {
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* Hover nas linhas */
+.task-list-container tbody tr:hover {
+  background-color: #f2f6fa;
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* Mensagem de lista vazia */
+.no-tasks {
+  font-size: 1.1rem;
+}
+.table td.text-muted {
+  font-style: italic;
+}
+
+/* Badges */
+.badge {
+  font-size: 0.85rem;
+  padding: 0.5em 0.75em; /* um pouco mais cheinho */
+  border-radius: 0.5rem;
+}
+
+/* Paleta SAP-like para estados */
+.badge.bg-success {
+  background-color: #0d9d58 !important; /* verde SAP */
+}
+.badge.bg-warning {
+  background-color: #ffcc00 !important; /* amarelo SAP */
+  color: #212529 !important;
+}
+.badge.bg-secondary {
+  background-color: #6c757d !important;
+}
+
+/* Extras usados pelo TaskList.tsx novo */
+.badge.bg-info {
+  background-color: #64b5f6 !important; /* azul claro informativo */
+  color: #0b2e4a !important;
+}
+.badge.bg-primary {
+  background-color: #1976d2 !important; /* azul primário */
+}
+.badge.bg-danger {
+  background-color: #d32f2f !important; /* vermelho */
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .task-list-container {
+    padding: 0.5rem;
+  }
+  .task-list-container th,
+  .task-list-container td {
+    font-size: 0.85rem;
+  }
+}
