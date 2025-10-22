@@ -47,6 +47,44 @@ public class UserController {
         return ResponseEntity.ok(dto);
     }
 
+    // 🔹 Atualiza usuário existente (parcial)
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
+        return userService.findById(id)
+                .map(existing -> {
+                    // 💡 Evita e-mail duplicado (se foi enviado e mudou)
+                    if (updatedUser.getEmail() != null && !updatedUser.getEmail().equalsIgnoreCase(existing.getEmail())) {
+                        var byEmail = userService.findByEmail(updatedUser.getEmail());
+                        if (byEmail.isPresent() && !byEmail.get().getId().equals(id)) {
+                            return ResponseEntity.badRequest().body("Email already registered.");
+                        }
+                        existing.setEmail(updatedUser.getEmail());
+                    }
+
+                    if (updatedUser.getFirstName() != null) {
+                        existing.setFirstName(updatedUser.getFirstName());
+                    }
+                    if (updatedUser.getLastName() != null) {
+                        existing.setLastName(updatedUser.getLastName());
+                    }
+                    // ⚠️ Se vier senha nova, deixe o UserService.save() criptografar
+                    if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
+                        existing.setPassword(updatedUser.getPassword()); // raw aqui; será encodada no save()
+                    }
+
+                    var saved = userService.save(existing);
+                    var dto = new UserDTO(
+                            saved.getId(),
+                            saved.getFirstName(),
+                            saved.getLastName(),
+                            saved.getEmail(),
+                            saved.getCreatedAt()
+                    );
+                    return ResponseEntity.ok(dto);
+                })
+                .orElseGet(() -> ResponseEntity.status(404).body("User not found"));
+    }
+
     // 🔹 Busca usuário por e-mail
     @GetMapping("/find")
     public ResponseEntity<?> findByEmail(@RequestParam String email) {
@@ -60,5 +98,16 @@ public class UserController {
                 ))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 🔹 Exclui usuário pelo ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+            return userService.findById(id)
+                .map(user -> {
+                    userService.delete(id);
+                    return ResponseEntity.ok("User deleted successfully.");
+                })
+                .orElse(ResponseEntity.status(404).body("User not found."));
     }
 }

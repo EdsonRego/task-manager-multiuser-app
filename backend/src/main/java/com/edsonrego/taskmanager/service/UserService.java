@@ -28,6 +28,10 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    // 🔹 Busca por ID (necessário para deletar)
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
     public User save(User user) {
         if (user.getPassword() != null && !user.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -41,4 +45,9 @@ public class UserService {
     public boolean validatePassword(String rawPassword, String encodedPassword) {
         return passwordEncoder.matches(rawPassword, encodedPassword);
     }
+
+    public void delete(Long id) {
+        userRepository.deleteById(id);
+    }
+
 }

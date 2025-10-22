@@ -5,7 +5,7 @@ import com.edsonrego.taskmanager.service.TaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +46,11 @@ public class TaskController {
             return ResponseEntity.badRequest().body("Planned description is required.");
         }
 
+        // Define data de criação caso não venha no body
+        if (task.getCreationDate() == null) {
+            task.setCreationDate(LocalDate.now());
+        }
+
         Task saved = taskService.save(task);
         return ResponseEntity.ok(saved);
     }
@@ -59,16 +64,22 @@ public class TaskController {
         }
 
         Task task = existing.get();
+
         if (updatedTask.getPlannedDescription() != null)
             task.setPlannedDescription(updatedTask.getPlannedDescription());
+
         if (updatedTask.getExecutedDescription() != null)
             task.setExecutedDescription(updatedTask.getExecutedDescription());
+
         if (updatedTask.getExecutionStatus() != null)
             task.setExecutionStatus(updatedTask.getExecutionStatus());
+
         if (updatedTask.getTaskSituation() != null)
             task.setTaskSituation(updatedTask.getTaskSituation());
+
         if (updatedTask.getDueDate() != null)
             task.setDueDate(updatedTask.getDueDate());
+
         if (updatedTask.getResponsible() != null)
             task.setResponsible(updatedTask.getResponsible());
 
@@ -88,21 +99,27 @@ public class TaskController {
             @RequestParam(required = false) String description
     ) {
         try {
-            LocalDateTime creation = (creationDate != null && !creationDate.isBlank())
-                    ? LocalDateTime.parse(creationDate)
-                    : null;
-            LocalDateTime due = (dueDate != null && !dueDate.isBlank())
-                    ? LocalDateTime.parse(dueDate)
+            LocalDate creation = (creationDate != null && !creationDate.isBlank())
+                    ? LocalDate.parse(creationDate)
                     : null;
 
-            List<Task> results = taskService.searchTasks(status, situation, responsibleId, creation, due, id, description);
+            LocalDate due = (dueDate != null && !dueDate.isBlank())
+                    ? LocalDate.parse(dueDate)
+                    : null;
+
+            List<Task> results = taskService.searchTasks(
+                    status, situation, responsibleId, creation, due, id, description
+            );
+
             if (results.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
+
             return ResponseEntity.ok(results);
 
         } catch (DateTimeParseException e) {
-            return ResponseEntity.badRequest().body("Invalid date format. Use ISO-8601 format (e.g., 2025-10-21T10:30:00).");
+            return ResponseEntity.badRequest()
+                    .body("Invalid date format. Use ISO-8601 format (e.g., 2025-10-21).");
         }
     }
 
