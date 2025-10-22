@@ -19,16 +19,19 @@ const RegisterUser: React.FC = () => {
 
     setLoading(true);
     try {
-      const existing = await api.get<User[]>(`/users?email=${email}`);
-      if (existing.data.length === 0) {
+      // 🔍 Busca todos e verifica se o e-mail já existe
+      const existing = await api.get<User[]>("/users");
+      const emailExists = existing.data.some((u) => u.email === email);
+
+      if (!emailExists) {
         await api.post("/users", { firstName, lastName, email, password });
         alert("User registered successfully.");
         navigate("/");
       } else {
-        alert("Email already exists. A new password will be sent via email.");
+        alert("Email already registered. Try another one.");
       }
     } catch (err) {
-      console.error(err);
+      console.error("❌ Registration error:", err);
       alert("Error during registration.");
     } finally {
       setLoading(false);

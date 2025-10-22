@@ -1,34 +1,46 @@
+// frontend/src/components/Login.tsx
 import React, { useState } from "react";
-import type { User } from "../types/User";
-import api from "../api/api";
 import { useNavigate } from "react-router-dom";
+import api from "../api/api";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    setError("");
+
     if (!email || !password) {
-      alert("Please fill in all fields.");
+      setError("Please fill in all fields.");
       return;
     }
 
     setLoading(true);
     try {
-      const res = await api.get<User[]>(`/users?email=${email}`);
-      const user = res.data.find((u) => u.password === password);
+      // ✅ Novo endpoint de autenticação real
+      const response = await api.post("/auth/login", { email, password });
 
-      if (user) {
-        localStorage.setItem("user", JSON.stringify(user));
-        navigate("/home");
+      if (response.status === 200 && response.data.token) {
+        // ✅ Salva token e dados do usuário localmente
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data));
+
+        navigate("/dashboard");
       } else {
-        alert("User or password not registered.");
+        setError("Invalid credentials.");
       }
-    } catch (err) {
-      console.error(err);
-      alert("Error during login.");
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        setError("Invalid email or password.");
+      } else if (err.response?.status === 404) {
+        setError("User not found.");
+      } else {
+        console.error(err);
+        setError("Login error. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }
@@ -39,8 +51,8 @@ const Login: React.FC = () => {
       className="login-container d-flex align-items-start justify-content-center"
       style={{
         background: "linear-gradient(180deg, #e3f2fd 0%, #f4f7fb 100%)",
-        minHeight: "calc(100vh - 80px)", // ajusta considerando a altura da Navbar
-        paddingTop: "40px", // 🔹 reduz espaço entre Navbar e o card
+        minHeight: "calc(100vh - 80px)",
+        paddingTop: "40px",
       }}
     >
       <div
@@ -53,13 +65,17 @@ const Login: React.FC = () => {
       >
         <div className="text-center mb-4">
           <img src="/logo.png" alt="Logo" height={70} className="mb-2" />
-          <h2 className="text-primary fw-bold mb-1">
-            Welcome to Task Manager
-          </h2>
+          <h2 className="text-primary fw-bold mb-1">Welcome to Task Manager</h2>
           <p className="text-muted small">
             Manage your tasks efficiently and effectively
           </p>
         </div>
+
+        {error && (
+          <div className="alert alert-danger py-2 text-center small">
+            {error}
+          </div>
+        )}
 
         <div className="mb-3">
           <label className="form-label fw-semibold">Email</label>
@@ -77,8 +93,8 @@ const Login: React.FC = () => {
           <input
             type="password"
             className="form-control"
-            placeholder="Max 6 characters"
-            maxLength={6}
+            placeholder="Enter your password"
+            maxLength={20}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

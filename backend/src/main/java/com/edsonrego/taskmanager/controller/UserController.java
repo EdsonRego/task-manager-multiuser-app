@@ -20,6 +20,7 @@ public class UserController {
         this.userService = userService;
     }
 
+    // 🔹 Retorna todos os usuários
     @GetMapping
     public List<UserDTO> getAllUsers() {
         return userService.findAll().stream()
@@ -27,11 +28,37 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
+    // 🔹 Cria novo usuário (com retorno padronizado em DTO)
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody User user) {
         if (userService.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email already registered.");
         }
-        return ResponseEntity.ok(userService.save(user));
+
+        User saved = userService.save(user);
+        UserDTO dto = new UserDTO(
+                saved.getId(),
+                saved.getFirstName(),
+                saved.getLastName(),
+                saved.getEmail(),
+                saved.getCreatedAt()
+        );
+
+        return ResponseEntity.ok(dto);
+    }
+
+    // 🔹 Busca usuário por e-mail
+    @GetMapping("/find")
+    public ResponseEntity<?> findByEmail(@RequestParam String email) {
+        return userService.findByEmail(email)
+                .map(u -> new UserDTO(
+                        u.getId(),
+                        u.getFirstName(),
+                        u.getLastName(),
+                        u.getEmail(),
+                        u.getCreatedAt()
+                ))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

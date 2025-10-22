@@ -1,17 +1,14 @@
 package com.edsonrego.taskmanager.controller;
 
-import com.edsonrego.taskmanager.dto.TaskDTO;
 import com.edsonrego.taskmanager.model.Task;
-import com.edsonrego.taskmanager.model.User;
 import com.edsonrego.taskmanager.service.TaskService;
-import com.edsonrego.taskmanager.service.UserService;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -19,63 +16,104 @@ import java.util.stream.Collectors;
 public class TaskController {
 
     private final TaskService taskService;
-    private final UserService userService;
 
-    public TaskController(TaskService taskService, UserService userService) {
+    public TaskController(TaskService taskService) {
         this.taskService = taskService;
-        this.userService = userService;
     }
 
-    // Retorna todas as tarefas
+    // 🔹 Retorna todas as tarefas
     @GetMapping
-    public List<TaskDTO> getAllTasks() {
-        return taskService.findAll().stream().map(task -> new TaskDTO(
-                task.getId(),
-                task.getPlannedDescription(),
-                task.getExecutedDescription(),
-                task.getCreationDate(),
-                task.getDueDate(),
-                task.getExecutionStatus(),
-                task.getTaskSituation(),
-                task.getResponsible().getId(),
-                task.getResponsible().getFirstName() + " " + task.getResponsible().getLastName()
-        )).collect(Collectors.toList());
+    public ResponseEntity<List<Task>> getAllTasks() {
+        List<Task> tasks = taskService.findAll();
+        if (tasks.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(tasks);
     }
 
-    // Cria uma nova tarefa
+    // 🔹 Busca uma tarefa pelo ID
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getTaskById(@PathVariable Long id) {
+        Optional<Task> task = taskService.findById(id);
+        return task.<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(404).body("Task not found"));
+    }
+
+    // 🔹 Cria nova tarefa
     @PostMapping
     public ResponseEntity<?> createTask(@RequestBody Task task) {
-        User responsible = userService.findByEmail(task.getResponsible().getEmail())
-                .orElse(null);
-        if (responsible == null) {
-            return ResponseEntity.badRequest().body("Responsible user not found.");
+        if (task.getPlannedDescription() == null || task.getPlannedDescription().isBlank()) {
+            return ResponseEntity.badRequest().body("Planned description is required.");
         }
-        task.setResponsible(responsible);
-        return ResponseEntity.ok(taskService.save(task));
+
+        Task saved = taskService.save(task);
+        return ResponseEntity.ok(saved);
     }
 
-    // 🔍 Busca tarefas com filtros opcionais
+    // 🔹 Atualiza tarefa existente
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody Task updatedTask) {
+        Optional<Task> existing = taskService.findById(id);
+        if (existing.isEmpty()) {
+            return ResponseEntity.status(404).body("Task not found");
+        }
+
+        Task task = existing.get();
+        if (updatedTask.getPlannedDescription() != null)
+            task.setPlannedDescription(updatedTask.getPlannedDescription());
+        if (updatedTask.getExecutedDescription() != null)
+            task.setExecutedDescription(updatedTask.getExecutedDescription());
+        if (updatedTask.getExecutionStatus() != null)
+            task.setExecutionStatus(updatedTask.getExecutionStatus());
+        if (updatedTask.getTaskSituation() != null)
+            task.setTaskSituation(updatedTask.getTaskSituation());
+        if (updatedTask.getDueDate() != null)
+            task.setDueDate(updatedTask.getDueDate());
+        if (updatedTask.getResponsible() != null)
+            task.setResponsible(updatedTask.getResponsible());
+
+        Task saved = taskService.save(task);
+        return ResponseEntity.ok(saved);
+    }
+
+    // 🔹 Pesquisa dinâmica de tarefas com múltiplos filtros opcionais
     @GetMapping("/search")
-    public ResponseEntity<List<TaskDTO>> searchTasks(
+    public ResponseEntity<?> searchTasks(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String situation,
             @RequestParam(required = false) Long responsibleId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
-            @RequestParam(required = false) Long id
+            @RequestParam(required = false) String creationDate,
+            @RequestParam(required = false) String dueDate,
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String description
     ) {
-        List<Task> results = taskService.searchTasks(status, situation, responsibleId, createDate, dueDate, id);
-        List<TaskDTO> dtoList = results.stream().map(task -> new TaskDTO(
-                task.getId(),
-                task.getPlannedDescription(),
-                task.getExecutedDescription(),
-                task.getCreationDate(),
-                task.getDueDate(),
-                task.getExecutionStatus(),
-                task.getTaskSituation(),
-                task.getResponsible().getId(),
-                task.getResponsible().getFirstName() + " " + task.getResponsible().getLastName()
-        )).collect(Collectors.toList());
-        return ResponseEntity.ok(dtoList);
+        try {
+            LocalDateTime creation = (creationDate != null && !creationDate.isBlank())
+                    ? LocalDateTime.parse(creationDate)
+                    : null;
+            LocalDateTime due = (dueDate != null && !dueDate.isBlank())
+                    ? LocalDateTime.parse(dueDate)
+                    : null;
+
+            List<Task> results = taskService.searchTasks(status, situation, responsibleId, creation, due, id, description);
+            if (results.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(results);
+
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().body("Invalid date format. Use ISO-8601 format (e.g., 2025-10-21T10:30:00).");
+        }
+    }
+
+    // 🔹 Exclui uma tarefa pelo ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTask(@PathVariable Long id) {
+        Optional<Task> existing = taskService.findById(id);
+        if (existing.isEmpty()) {
+            return ResponseEntity.status(404).body("Task not found");
+        }
+        taskService.delete(id);
+        return ResponseEntity.ok("Task deleted successfully.");
     }
 }

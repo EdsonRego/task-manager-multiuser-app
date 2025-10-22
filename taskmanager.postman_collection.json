@@ -2,10 +2,60 @@
   "info": {
     "name": "Task Manager API",
     "_postman_id": "7b36c7ac-5678-47a9-9321-1b32ff9a64a5",
-    "description": "Collection of all API endpoints for Task Manager backend.",
+    "description": "Full API collection for Task Manager backend with JWT authentication and reporting endpoints.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "jwtToken",
+      "value": ""
+    }
+  ],
   "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login - Generate JWT",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"edsonxrego@gmail.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Authenticates the user and generates a JWT token."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.token) {",
+                  "  pm.collectionVariables.set('jwtToken', json.token);",
+                  "  console.log('✅ Token saved to collection variable');",
+                  "} else {",
+                  "  console.warn('⚠️ Token not found in response');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "Users",
       "item": [
@@ -13,20 +63,54 @@
           "name": "Get All Users",
           "request": {
             "method": "GET",
-            "header": [],
-            "url": { "raw": "http://localhost:8080/api/users", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "users"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "users"]
+            }
           }
         },
         {
           "name": "Create User",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"firstName\": \"Edson\",\n  \"lastName\": \"Rego\",\n  \"email\": \"edsonxrego@gmail.com\",\n  \"password\": \"123456\"\n}"
             },
-            "url": { "raw": "http://localhost:8080/api/users", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "users"] }
+            "url": {
+              "raw": "http://localhost:8080/api/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Find User by Email",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/users/find?email=edsonxrego@gmail.com",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "users", "find"],
+              "query": [{ "key": "email", "value": "edsonxrego@gmail.com" }]
+            }
           }
         }
       ]
@@ -38,92 +122,151 @@
           "name": "Get All Tasks",
           "request": {
             "method": "GET",
-            "header": [],
-            "url": { "raw": "http://localhost:8080/api/tasks", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "tasks"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/tasks",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "tasks"]
+            }
           }
         },
         {
           "name": "Create Task",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"plannedDescription\": \"Prepare monthly report\",\n  \"dueDate\": \"2025-10-31\",\n  \"responsible\": {\n    \"email\": \"edsonxrego@gmail.com\"\n  }\n}"
+              "raw": "{\n  \"plannedDescription\": \"Prepare monthly report\",\n  \"dueDate\": \"2025-10-31\",\n  \"executionStatus\": \"PENDING\",\n  \"taskSituation\": \"OPEN\",\n  \"responsible\": {\n    \"email\": \"edsonxrego@gmail.com\"\n  }\n}"
             },
-            "url": { "raw": "http://localhost:8080/api/tasks", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "tasks"] }
-          }
-        },
-        {
-          "name": "Search Tasks - Example 1 (All)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": { "raw": "http://localhost:8080/api/tasks/search", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "tasks", "search"] }
-          }
-        },
-        {
-          "name": "Search Tasks - By Status",
-          "request": {
-            "method": "GET",
-            "header": [],
             "url": {
-              "raw": "http://localhost:8080/api/tasks/search?status=Pending",
+              "raw": "http://localhost:8080/api/tasks",
               "protocol": "http",
               "host": ["localhost"],
               "port": "8080",
-              "path": ["api", "tasks", "search"],
-              "query": [{ "key": "status", "value": "Pending" }]
+              "path": ["api", "tasks"]
             }
           }
         },
         {
-          "name": "Search Tasks - By Responsible ID",
+          "name": "Search Tasks with Filters",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
             "url": {
-              "raw": "http://localhost:8080/api/tasks/search?responsibleId=1",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "8080",
-              "path": ["api", "tasks", "search"],
-              "query": [{ "key": "responsibleId", "value": "1" }]
-            }
-          }
-        },
-        {
-          "name": "Search Tasks - By Due Date",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:8080/api/tasks/search?dueDate=2025-10-30",
-              "protocol": "http",
-              "host": ["localhost"],
-              "port": "8080",
-              "path": ["api", "tasks", "search"],
-              "query": [{ "key": "dueDate", "value": "2025-10-30" }]
-            }
-          }
-        },
-        {
-          "name": "Search Tasks - Multiple Filters",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:8080/api/tasks/search?status=Pending&responsibleId=1&dueDate=2025-10-30",
+              "raw": "http://localhost:8080/api/tasks/search?status=PENDING&description=report&responsibleId=1",
               "protocol": "http",
               "host": ["localhost"],
               "port": "8080",
               "path": ["api", "tasks", "search"],
               "query": [
-                { "key": "status", "value": "Pending" },
-                { "key": "responsibleId", "value": "1" },
-                { "key": "dueDate", "value": "2025-10-30" }
+                { "key": "status", "value": "PENDING" },
+                { "key": "description", "value": "report" },
+                { "key": "responsibleId", "value": "1" }
               ]
             }
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"executedDescription\": \"Report completed successfully\",\n  \"executionStatus\": \"DONE\",\n  \"taskSituation\": \"CLOSED\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/tasks/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "tasks", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/tasks/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "tasks", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Get Summary (View)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/reports/summary",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "reports", "summary"]
+            },
+            "description": "Returns aggregated task data by user from the view vw_tasks_summary."
+          }
+        },
+        {
+          "name": "Recalculate Completion Rate (Procedure)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/reports/recalculate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "reports", "recalculate"]
+            },
+            "description": "Calls the PostgreSQL function recalculate_completion_rate() and returns task completion stats."
+          }
+        },
+        {
+          "name": "Reports Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/reports/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "reports", "health"]
+            },
+            "description": "Diagnostic endpoint to verify connectivity and view existence."
           }
         }
       ]
