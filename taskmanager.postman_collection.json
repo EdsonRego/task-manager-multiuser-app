@@ -6,10 +6,7 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "jwtToken",
-      "value": ""
-    }
+    { "key": "jwtToken", "value": "" }
   ],
   "item": [
     {
@@ -35,7 +32,6 @@
             },
             "description": "Authenticates the user and generates a JWT token."
           },
-          "response": [],
           "event": [
             {
               "listen": "test",
@@ -76,6 +72,30 @@
           }
         },
         {
+          "name": "Get All Users Pageable",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/users?paged=true&page=0&size=5&sortBy=createdAt&direction=desc",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "users"],
+              "query": [
+                { "key": "paged", "value": "true" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "5" },
+                { "key": "sortBy", "value": "createdAt" },
+                { "key": "direction", "value": "desc" }
+              ]
+            },
+            "description": "Returns a paginated and sorted list of users."
+          }
+        },
+        {
           "name": "Create User",
           "request": {
             "method": "POST",
@@ -109,8 +129,49 @@
               "host": ["localhost"],
               "port": "8080",
               "path": ["api", "users", "find"],
-              "query": [{ "key": "email", "value": "edsonxrego@gmail.com" }]
+              "query": [
+                { "key": "email", "value": "edsonxrego@gmail.com" }
+              ]
             }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Edson Luiz\",\n  \"lastName\": \"Rego\",\n  \"password\": \"novaSenha123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "users", "1"]
+            },
+            "description": "Partially updates user data by ID (firstName, lastName, email, or password)."
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/users/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "users", "1"]
+            },
+            "description": "Deletes a user by ID. Requires valid JWT token and appropriate permissions."
           }
         }
       ]
@@ -153,6 +214,32 @@
               "port": "8080",
               "path": ["api", "tasks"]
             }
+          }
+        },
+        {
+          "name": "Get All Tasks Pageable",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/tasks/search?status=PENDING&responsibleId=1&paged=true&page=0&size=5&sortBy=dueDate&direction=desc",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "tasks", "search"],
+              "query": [
+                { "key": "status", "value": "PENDING" },
+                { "key": "responsibleId", "value": "1" },
+                { "key": "paged", "value": "true" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "5" },
+                { "key": "sortBy", "value": "dueDate" },
+                { "key": "direction", "value": "desc" }
+              ]
+            },
+            "description": "Returns a paginated and sorted list of tasks with filters applied."
           }
         },
         {

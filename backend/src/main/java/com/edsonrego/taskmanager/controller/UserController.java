@@ -1,13 +1,14 @@
 package com.edsonrego.taskmanager.controller;
 
-import com.edsonrego.taskmanager.dto.UserDTO;
 import com.edsonrego.taskmanager.model.User;
 import com.edsonrego.taskmanager.service.UserService;
+import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -20,94 +21,111 @@ public class UserController {
         this.userService = userService;
     }
 
-    // 🔹 Retorna todos os usuários
+    // 🔹 Lista todos os usuários com suporte a paginação e ordenação
     @GetMapping
-    public List<UserDTO> getAllUsers() {
-        return userService.findAll().stream()
-                .map(u -> new UserDTO(u.getId(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getCreatedAt()))
-                .collect(Collectors.toList());
-    }
-
-    // 🔹 Cria novo usuário (com retorno padronizado em DTO)
-    @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody User user) {
-        if (userService.findByEmail(user.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email already registered.");
+    public ResponseEntity<?> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(defaultValue = "false") boolean paged
+    ) {
+        List<User> allUsers = userService.findAll();
+        if (allUsers.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
 
-        User saved = userService.save(user);
-        UserDTO dto = new UserDTO(
-                saved.getId(),
-                saved.getFirstName(),
-                saved.getLastName(),
-                saved.getEmail(),
-                saved.getCreatedAt()
-        );
+        // 🔹 Caso o cliente não queira paginação (mantém compatibilidade)
+        if (!paged) {
+            return ResponseEntity.ok(allUsers);
+        }
 
-        return ResponseEntity.ok(dto);
+        // 🔹 Caso contrário, aplica paginação e ordenação
+        Sort sort = direction.equalsIgnoreCase("desc") ?
+                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        int start = Math.min((int) pageable.getOffset(), allUsers.size());
+        int end = Math.min((start + pageable.getPageSize()), allUsers.size());
+        Page<User> userPage = new PageImpl<>(allUsers.subList(start, end), pageable, allUsers.size());
+
+        return ResponseEntity.ok(userPage);
     }
 
-    // 🔹 Atualiza usuário existente (parcial)
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
-        return userService.findById(id)
-                .map(existing -> {
-                    // 💡 Evita e-mail duplicado (se foi enviado e mudou)
-                    if (updatedUser.getEmail() != null && !updatedUser.getEmail().equalsIgnoreCase(existing.getEmail())) {
-                        var byEmail = userService.findByEmail(updatedUser.getEmail());
-                        if (byEmail.isPresent() && !byEmail.get().getId().equals(id)) {
-                            return ResponseEntity.badRequest().body("Email already registered.");
-                        }
-                        existing.setEmail(updatedUser.getEmail());
-                    }
-
-                    if (updatedUser.getFirstName() != null) {
-                        existing.setFirstName(updatedUser.getFirstName());
-                    }
-                    if (updatedUser.getLastName() != null) {
-                        existing.setLastName(updatedUser.getLastName());
-                    }
-                    // ⚠️ Se vier senha nova, deixe o UserService.save() criptografar
-                    if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
-                        existing.setPassword(updatedUser.getPassword()); // raw aqui; será encodada no save()
-                    }
-
-                    var saved = userService.save(existing);
-                    var dto = new UserDTO(
-                            saved.getId(),
-                            saved.getFirstName(),
-                            saved.getLastName(),
-                            saved.getEmail(),
-                            saved.getCreatedAt()
-                    );
-                    return ResponseEntity.ok(dto);
-                })
-                .orElseGet(() -> ResponseEntity.status(404).body("User not found"));
+    // 🔹 Busca usuário por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        Optional<User> userOpt = userService.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User not found");
+        }
+        return ResponseEntity.ok(userOpt.get());
     }
 
     // 🔹 Busca usuário por e-mail
-    @GetMapping("/find")
-    public ResponseEntity<?> findByEmail(@RequestParam String email) {
-        return userService.findByEmail(email)
-                .map(u -> new UserDTO(
-                        u.getId(),
-                        u.getFirstName(),
-                        u.getLastName(),
-                        u.getEmail(),
-                        u.getCreatedAt()
-                ))
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping("/by-email")
+    public ResponseEntity<?> getUserByEmail(@RequestParam String email) {
+        Optional<User> userOpt = userService.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User not found");
+        }
+        return ResponseEntity.ok(userOpt.get());
     }
 
-    // 🔹 Exclui usuário pelo ID
+    // 🔹 Cria novo usuário
+    @PostMapping
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            return ResponseEntity.badRequest().body("Email is required.");
+        }
+
+        Optional<User> existingUser = userService.findByEmail(user.getEmail());
+        if (existingUser.isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("User with this email already exists.");
+        }
+
+        User saved = userService.save(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
+    // 🔹 Atualiza dados de um usuário existente (parcial)
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
+        Optional<User> existingOpt = userService.findById(id);
+        if (existingOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        User existing = existingOpt.get();
+
+        if (updatedUser.getFirstName() != null)
+            existing.setFirstName(updatedUser.getFirstName());
+
+        if (updatedUser.getLastName() != null)
+            existing.setLastName(updatedUser.getLastName());
+
+        if (updatedUser.getEmail() != null)
+            existing.setEmail(updatedUser.getEmail());
+
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank())
+            existing.setPassword(updatedUser.getPassword());
+
+        User saved = userService.save(existing);
+        return ResponseEntity.ok(saved);
+    }
+
+    // 🔹 Exclui um usuário
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-            return userService.findById(id)
-                .map(user -> {
-                    userService.delete(id);
-                    return ResponseEntity.ok("User deleted successfully.");
-                })
-                .orElse(ResponseEntity.status(404).body("User not found."));
+        Optional<User> userOpt = userService.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        userService.delete(id);
+        return ResponseEntity.ok("User deleted successfully.");
     }
 }

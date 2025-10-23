@@ -2,12 +2,12 @@ package com.edsonrego.taskmanager.service;
 
 import com.edsonrego.taskmanager.model.Task;
 import com.edsonrego.taskmanager.repository.TaskRepository;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -19,10 +19,59 @@ public class TaskService {
     }
 
     /**
-     * 🔹 Retorna todas as tarefas cadastradas.
+     * 🔹 Busca paginada e filtrada de tarefas usando Specification.
+     *   Substitui o antigo filtro manual com stream() por query SQL real.
      */
-    public List<Task> findAll() {
-        return taskRepository.findAll();
+    public Page<Task> searchTasksPaged(
+            String status,
+            String situation,
+            Long responsibleId,
+            LocalDate createDate,
+            LocalDate dueDate,
+            Long id,
+            String description,
+            Pageable pageable
+    ) {
+        // Cria especificação inicial vazia
+        Specification<Task> spec = Specification.where(null);
+
+        // Aplica filtros dinamicamente, apenas se valores existirem
+        if (id != null)
+            spec = spec.and((root, q, cb) -> cb.equal(root.get("id"), id));
+
+        if (status != null && !status.isBlank())
+            spec = spec.and((root, q, cb) ->
+                    cb.equal(cb.lower(root.get("executionStatus")), status.toLowerCase()));
+
+        if (situation != null && !situation.isBlank())
+            spec = spec.and((root, q, cb) ->
+                    cb.equal(cb.lower(root.get("taskSituation")), situation.toLowerCase()));
+
+        if (responsibleId != null)
+            spec = spec.and((root, q, cb) ->
+                    cb.equal(root.get("responsible").get("id"), responsibleId));
+
+        if (createDate != null)
+            spec = spec.and((root, q, cb) -> cb.equal(root.get("creationDate"), createDate));
+
+        if (dueDate != null)
+            spec = spec.and((root, q, cb) -> cb.equal(root.get("dueDate"), dueDate));
+
+        if (description != null && !description.isBlank())
+            spec = spec.and((root, q, cb) ->
+                    cb.like(cb.lower(root.get("plannedDescription")),
+                            "%" + description.toLowerCase() + "%"));
+
+        // Executa a consulta no banco com paginação e ordenação reais
+        return taskRepository.findAll(spec, pageable);
+    }
+
+    /**
+     * 🔹 Retorna todas as tarefas (paginadas ou não).
+     *   Equivalente ao antigo findAll() mas com suporte a Pageable.
+     */
+    public Page<Task> findAllPaged(Pageable pageable) {
+        return taskRepository.findAll(pageable);
     }
 
     /**
@@ -33,63 +82,25 @@ public class TaskService {
     }
 
     /**
-     * 🔹 Cria ou atualiza uma tarefa aplicando defaults seguros.
+     * 🔹 Cria ou atualiza tarefa aplicando defaults seguros.
      */
     public Task save(Task task) {
-        // Define status padrão se não informado
-        if (task.getExecutionStatus() == null || task.getExecutionStatus().isBlank()) {
+        if (task.getExecutionStatus() == null || task.getExecutionStatus().isBlank())
             task.setExecutionStatus("PENDING");
-        }
 
-        // Define situação padrão se não informada
-        if (task.getTaskSituation() == null || task.getTaskSituation().isBlank()) {
+        if (task.getTaskSituation() == null || task.getTaskSituation().isBlank())
             task.setTaskSituation("OPEN");
-        }
 
-        // Define data de criação se ausente
-        if (task.getCreationDate() == null) {
+        if (task.getCreationDate() == null)
             task.setCreationDate(LocalDate.now());
-        }
 
         return taskRepository.save(task);
     }
 
     /**
-     * 🔹 Remove uma tarefa pelo ID.
+     * 🔹 Exclui tarefa pelo ID.
      */
     public void delete(Long id) {
         taskRepository.deleteById(id);
-    }
-
-    /**
-     * 🔍 Busca dinâmica de tarefas com múltiplos filtros opcionais.
-     */
-    public List<Task> searchTasks(
-            String status,
-            String situation,
-            Long responsibleId,
-            LocalDate createDate,
-            LocalDate dueDate,
-            Long id,
-            String description
-    ) {
-        List<Task> allTasks = taskRepository.findAll();
-
-        return allTasks.stream()
-                .filter(t -> (id == null || t.getId().equals(id)))
-                .filter(t -> (status == null || status.isBlank() ||
-                        (t.getExecutionStatus() != null && t.getExecutionStatus().equalsIgnoreCase(status))))
-                .filter(t -> (situation == null || situation.isBlank() ||
-                        (t.getTaskSituation() != null && t.getTaskSituation().equalsIgnoreCase(situation))))
-                .filter(t -> (responsibleId == null ||
-                        (t.getResponsible() != null && t.getResponsible().getId().equals(responsibleId))))
-                .filter(t -> (createDate == null ||
-                        (t.getCreationDate() != null && t.getCreationDate().isEqual(createDate))))
-                .filter(t -> (dueDate == null ||
-                        (t.getDueDate() != null && t.getDueDate().isEqual(dueDate))))
-                .filter(t -> (description == null || description.isBlank() ||
-                        (t.getPlannedDescription() != null &&
-                                t.getPlannedDescription().toLowerCase().contains(description.toLowerCase()))))
-                .collect(Collectors.toList());
     }
 }

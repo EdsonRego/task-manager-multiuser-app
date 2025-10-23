@@ -2,6 +2,9 @@ server:
   port: 8080
 
 spring:
+  main:
+    allow-circular-references: false  # ← fora de datasource!
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_DATABASE:taskmanagerdb}
     username: ${DB_USERNAME:postgres}
@@ -34,7 +37,7 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
 
 jwt:
-  secret: change-this-super-secret-key-at-least-32-bytes-long
+  secret: Y2hhbmdlLXRob3Mtc3VwZXItc2VjcmV0LWtleS1hdC1sZWFzdC0zMi1ieXRlcy1sb25n
 
 app:
   cors:

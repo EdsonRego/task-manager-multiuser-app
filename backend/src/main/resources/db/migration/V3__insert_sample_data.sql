@@ -7,10 +7,9 @@
 -- 🔹 Usuários de exemplo
 INSERT INTO users (first_name, last_name, email, password, created_at)
 VALUES
-('Edson', 'Rego', 'edsonxrego@gmail.com', '$2a$10$KIX7f2vIYkxi7dP4M4SdHeT4H1vRkYQbzq76Pzmx40uwRgfbDXROK', CURRENT_TIMESTAMP), -- senha: 123456
-('Maria', 'Silva', 'maria.silva@example.com', '$2a$10$KIX7f2vIYkxi7dP4M4SdHeT4H1vRkYQbzq76Pzmx40uwRgfbDXROK', CURRENT_TIMESTAMP), -- senha: 123456
-('João', 'Souza', 'joao.souza@example.com', '$2a$10$KIX7f2vIYkxi7dP4M4SdHeT4H1vRkYQbzq76Pzmx40uwRgfbDXROK', CURRENT_TIMESTAMP);  -- senha: 123456
-
+('Edson', 'Rego', 'edsonxrego@gmail.com', '$2a$10$ugYYHZ7V7DkNPqwGLNxFsux6o/mUMsM8YwheLD.MnZG7VIDjHUP9y', NOW()),
+('Maria', 'Silva', 'maria.silva@example.com', '$2a$10$ugYYHZ7V7DkNPqwGLNxFsux6o/mUMsM8YwheLD.MnZG7VIDjHUP9y', NOW()),
+('João', 'Souza', 'joao.souza@example.com', '$2a$10$ugYYHZ7V7DkNPqwGLNxFsux6o/mUMsM8YwheLD.MnZG7VIDjHUP9y', NOW());
 
 -- 🔹 Tarefas de exemplo
 INSERT INTO tasks (planned_description, executed_description, creation_date, due_date, execution_status, task_situation, responsible_id)

@@ -20,19 +20,27 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // 🔹 Retorna todos os usuários
     public List<User> findAll() {
         return userRepository.findAll();
     }
 
+    // 🔹 Busca sempre ignorando maiúsculas/minúsculas
     public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
+        if (email == null) return Optional.empty();
+        return userRepository.findByEmailIgnoreCase(email.trim().toLowerCase());
     }
 
-    // 🔹 Busca por ID (necessário para deletar)
+    // 🔹 Busca por ID (necessário para update e delete)
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
+
+    // 🔹 Garante persistência em minúsculas
     public User save(User user) {
+        if (user.getEmail() != null) {
+            user.setEmail(user.getEmail().trim().toLowerCase());
+        }
         if (user.getPassword() != null && !user.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
@@ -42,12 +50,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    // 🔹 Valida senha informada com hash armazenado
     public boolean validatePassword(String rawPassword, String encodedPassword) {
         return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 
+    // 🔹 Deleta usuário por ID
     public void delete(Long id) {
         userRepository.deleteById(id);
     }
-
 }

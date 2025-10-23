@@ -101,6 +101,4 @@ public class TaskDTO {
         this.responsibleName = responsibleName;
     }
 
-    // Getters and setters
-
 }
