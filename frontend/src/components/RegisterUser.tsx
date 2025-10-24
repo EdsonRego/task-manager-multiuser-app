@@ -19,13 +19,12 @@ const RegisterUser: React.FC = () => {
 
     setLoading(true);
     try {
-      // 🔍 Busca todos e verifica se o e-mail já existe
       const existing = await api.get<User[]>("/users");
       const emailExists = existing.data.some((u) => u.email === email);
 
       if (!emailExists) {
         await api.post("/users", { firstName, lastName, email, password });
-        alert("User registered successfully.");
+        alert("✅ User registered successfully!");
         navigate("/");
       } else {
         alert("Email already registered. Try another one.");
@@ -61,6 +60,7 @@ const RegisterUser: React.FC = () => {
           <p className="text-muted small">Create your Task Manager account</p>
         </div>
 
+        {/* Campos */}
         <div className="mb-3">
           <label className="form-label fw-semibold">First Name</label>
           <input

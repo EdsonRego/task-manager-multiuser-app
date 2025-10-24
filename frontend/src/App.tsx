@@ -8,7 +8,7 @@ import TaskSearch from "./pages/TaskSearch";
 import NotFound from "./pages/NotFound";
 import NavigationBar from "./components/NavigationBar";
 import Footer from "./components/Footer";
-import PrivateRoute from "./components/PrivateRoute"; // ✅ Import novo
+import PrivateRoute from "./components/PrivateRoute";
 import "./styles/ui.css";
 
 const App: React.FC = () => {
@@ -27,32 +27,18 @@ const App: React.FC = () => {
           {/* Rotas protegidas */}
           <Route
             path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
+            element={<PrivateRoute element={<Dashboard />} />}
           />
-
           <Route
             path="/task-register"
-            element={
-              <PrivateRoute>
-                <TaskRegister />
-              </PrivateRoute>
-            }
+            element={<PrivateRoute element={<TaskRegister />} />}
           />
-
           <Route
             path="/task-search"
-            element={
-              <PrivateRoute>
-                <TaskSearch />
-              </PrivateRoute>
-            }
+            element={<PrivateRoute element={<TaskSearch />} />}
           />
 
-          {/* Rota 404 */}
+          {/* Página 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

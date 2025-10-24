@@ -1,8 +1,10 @@
-// frontend/src/components/Login.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 
+/**
+ * Tela de Login com persistência segura do token JWT.
+ */
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,25 +22,31 @@ const Login: React.FC = () => {
 
     setLoading(true);
     try {
-      // ✅ Novo endpoint de autenticação real
       const response = await api.post("/auth/login", { email, password });
 
       if (response.status === 200 && response.data.token) {
-        // ✅ Salva token e dados do usuário localmente
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data));
+        console.log("✅ Login bem-sucedido, token recebido:", response.data.token);
 
-        navigate("/dashboard");
+        // 🧠 Limpa antes de salvar (evita sobreposição de tokens antigos)
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        // 💾 Salva o token e o usuário de forma sincronizada
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+
+        // ⏳ Garante que o token foi gravado antes de navegar
+        setTimeout(() => navigate("/dashboard"), 150);
       } else {
         setError("Invalid credentials.");
       }
     } catch (err: any) {
+      console.error("❌ Erro no login:", err);
       if (err.response?.status === 401) {
         setError("Invalid email or password.");
       } else if (err.response?.status === 404) {
         setError("User not found.");
       } else {
-        console.error(err);
         setError("Login error. Please try again later.");
       }
     } finally {
@@ -72,9 +80,7 @@ const Login: React.FC = () => {
         </div>
 
         {error && (
-          <div className="alert alert-danger py-2 text-center small">
-            {error}
-          </div>
+          <div className="alert alert-danger py-2 text-center small">{error}</div>
         )}
 
         <div className="mb-3">
@@ -97,6 +103,7 @@ const Login: React.FC = () => {
             maxLength={20}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleLogin()} // ENTER faz login
           />
         </div>
 

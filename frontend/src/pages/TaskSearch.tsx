@@ -2,8 +2,28 @@ import React, { useState, useEffect } from "react";
 import { getAllTasks } from "../api/taskApi";
 import type { Task } from "../types/Task";
 import type { User } from "../types/User";
+import api from "../api/api";
 import TaskList from "../components/TaskList";
 import "../styles/TaskSearch.css";
+
+const toBackendStatus = (s: string) => {
+  // UI -> Backend
+  const map: Record<string, string> = {
+    "Pending": "PENDING",
+    "In Progress": "IN PROGRESS", // ajuste se backend usar outro valor
+    "Completed": "COMPLETED"
+  };
+  return map[s] || s.toUpperCase();
+};
+
+const toBackendSituation = (s: string) => {
+  const map: Record<string, string> = {
+    "Not Delayed": "NOT DELAYED",
+    "Delayed": "DELAYED",
+    "Completed": "COMPLETED"
+  };
+  return map[s] || s.toUpperCase();
+};
 
 const TaskSearch: React.FC = () => {
   const [filters, setFilters] = useState({
@@ -19,11 +39,10 @@ const TaskSearch: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Carrega usuários para o select
+  // Carrega usuários com JWT
   useEffect(() => {
-    fetch("http://localhost:8080/api/users")
-      .then((res) => res.json())
-      .then((data) => setUsers(data))
+    api.get<User[]>("/users")
+      .then((res) => setUsers(res.data))
       .catch(() => console.warn("Could not load users."));
   }, []);
 
@@ -38,9 +57,19 @@ const TaskSearch: React.FC = () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
-      });
+
+      if (filters.description) params.append("description", filters.description);
+
+      if (filters.status) params.append("status", toBackendStatus(filters.status));
+      if (filters.situation) params.append("situation", toBackendSituation(filters.situation));
+
+      if (filters.responsibleId) params.append("responsibleId", filters.responsibleId);
+      if (filters.createDate) params.append("creationDate", filters.createDate);
+      if (filters.dueDate) params.append("dueDate", filters.dueDate);
+
+      // opcional: garantir não paginado (array) ou deixar assim e normalizar no taskApi
+      // params.append("paged", "false");
+
       const res = await getAllTasks(params.toString());
       setTasks(res.data);
     } catch (err) {

@@ -5,7 +5,7 @@ import com.edsonrego.taskmanager.model.User;
 import com.edsonrego.taskmanager.service.TaskService;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -62,26 +62,42 @@ public class TaskController {
     }
 
     /**
-     * 🔹 Cria nova tarefa (responsável = usuário autenticado, se existir)
+     * 🔹 Cria nova tarefa (responsável = usuário autenticado)
      */
     @PostMapping
-    public ResponseEntity<?> createTask(@AuthenticationPrincipal User authenticatedUser,
-                                        @RequestBody Task task) {
+    public ResponseEntity<?> createTask(@RequestBody Task task, Authentication authentication) {
         if (task.getPlannedDescription() == null || task.getPlannedDescription().isBlank()) {
             return ResponseEntity.badRequest().body("Planned description is required.");
         }
 
-        if (authenticatedUser != null) {
-            task.setResponsible(authenticatedUser);
+        User authenticatedUser = null;
+        if (authentication != null && authentication.getPrincipal() instanceof User user) {
+            authenticatedUser = user;
         }
 
+        if (authenticatedUser == null) {
+            System.out.println("⚠️ Nenhum usuário autenticado encontrado no contexto de segurança!");
+            return ResponseEntity.status(401).body("User not authenticated.");
+        }
+
+        // ✅ Define o responsável pela tarefa
+        task.setResponsible(authenticatedUser);
+
+        // ✅ Define status em maiúsculo
+        if (task.getExecutionStatus() != null) {
+            task.setExecutionStatus(task.getExecutionStatus().toUpperCase());
+        }
+
+        // ✅ Define data de criação caso ausente
         if (task.getCreationDate() == null) {
             task.setCreationDate(LocalDate.now());
         }
 
         Task saved = taskService.save(task);
+        System.out.println("💾 Tarefa criada com sucesso: " + task.getPlannedDescription());
         return ResponseEntity.ok(saved);
     }
+
 
     /**
      * 🔹 Atualiza uma tarefa existente

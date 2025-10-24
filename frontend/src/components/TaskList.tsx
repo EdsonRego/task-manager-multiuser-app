@@ -1,4 +1,3 @@
-// frontend/src/components/TaskList.tsx
 import React, { useEffect, useState } from "react";
 import type { Task } from "../types/Task";
 import { getAllTasks } from "../api/taskApi";
@@ -37,19 +36,19 @@ const TaskList: React.FC = () => {
         <thead
           className="text-white"
           style={{
-            backgroundColor: "#003366", // Azul SAP escuro
+            backgroundColor: "#003366",
             borderBottom: "3px solid #0d6efd",
           }}
         >
           <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Planned</th>
-            <th scope="col">Executed</th>
-            <th scope="col">Created</th>
-            <th scope="col">Due</th>
-            <th scope="col">Status</th>
-            <th scope="col">Situation</th>
-            <th scope="col">Responsible</th>
+            <th>ID</th>
+            <th>Planned</th>
+            <th>Executed</th>
+            <th>Created</th>
+            <th>Due</th>
+            <th>Status</th>
+            <th>Situation</th>
+            <th>Responsible</th>
           </tr>
         </thead>
 
@@ -71,11 +70,13 @@ const TaskList: React.FC = () => {
                 <td>
                   <span
                     className={`badge ${
-                      task.executionStatus === "Completed"
-                        ? "bg-success"
-                        : task.executionStatus === "In Progress"
-                        ? "bg-warning text-dark"
-                        : "bg-secondary"
+                      (task.executionStatus || '').toLowerCase() === 'done'
+                        ? 'bg-success'       // ✅ verde
+                        : (task.executionStatus || '').toLowerCase() === 'pending'
+                        ? 'bg-danger'        // ✅ vermelho
+                        : (task.executionStatus || '').toLowerCase() === 'cancelled'
+                        ? 'bg-secondary'     // ✅ cinza
+                        : 'bg-warning text-dark'  // ✅ outros = amarelo
                     }`}
                   >
                     {task.executionStatus}
