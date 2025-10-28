@@ -2,10 +2,18 @@ import React from "react";
 import { Container } from "react-bootstrap";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  isAuthenticated?: boolean;
+}
+
+/**
+ * 🔹 Footer — permanece ativo mesmo sem autenticação,
+ * mas integra com o LayoutWrapper para controle visual uniforme.
+ */
+const Footer: React.FC<FooterProps> = () => {
   return (
     <footer
-      className="footer mt-auto py-2 text-center text-white" // 🔹 py-2 = padding vertical menor
+      className="footer mt-auto py-2 text-center text-white"
       style={{
         backgroundColor: "#084b8a",
         position: "fixed",
@@ -13,7 +21,7 @@ const Footer: React.FC = () => {
         left: 0,
         width: "100%",
         zIndex: 1000,
-        height: "85px", // 🔹 altura ~2/3 da NavigationBar
+        height: "85px",
       }}
     >
       <Container>
@@ -26,7 +34,6 @@ const Footer: React.FC = () => {
           >
             <FaLinkedin />
           </a>
-
           <a
             href="https://github.com/EdsonRego"
             target="_blank"

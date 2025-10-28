@@ -20,7 +20,7 @@ public class TaskService {
 
     /**
      * 🔹 Busca paginada e filtrada de tarefas usando Specification.
-     *   Substitui o antigo filtro manual com stream() por query SQL real.
+     *   Comparação de data ignora hora (usa DATE()).
      */
     public Page<Task> searchTasksPaged(
             String status,
@@ -32,10 +32,8 @@ public class TaskService {
             String description,
             Pageable pageable
     ) {
-        // Cria especificação inicial vazia
         Specification<Task> spec = Specification.where(null);
 
-        // Aplica filtros dinamicamente, apenas se valores existirem
         if (id != null)
             spec = spec.and((root, q, cb) -> cb.equal(root.get("id"), id));
 
@@ -51,40 +49,36 @@ public class TaskService {
             spec = spec.and((root, q, cb) ->
                     cb.equal(root.get("responsible").get("id"), responsibleId));
 
+        // ✅ Corrigido: compara apenas a data, ignora hora
         if (createDate != null)
-            spec = spec.and((root, q, cb) -> cb.equal(root.get("creationDate"), createDate));
+            spec = spec.and((root, q, cb) ->
+                    cb.equal(cb.function("DATE", LocalDate.class, root.get("creationDate")), createDate));
 
         if (dueDate != null)
-            spec = spec.and((root, q, cb) -> cb.equal(root.get("dueDate"), dueDate));
+            spec = spec.and((root, q, cb) ->
+                    cb.equal(cb.function("DATE", LocalDate.class, root.get("dueDate")), dueDate));
 
         if (description != null && !description.isBlank())
             spec = spec.and((root, q, cb) ->
                     cb.like(cb.lower(root.get("plannedDescription")),
                             "%" + description.toLowerCase() + "%"));
 
-        // Executa a consulta no banco com paginação e ordenação reais
         return taskRepository.findAll(spec, pageable);
     }
 
-    /**
-     * 🔹 Retorna todas as tarefas (paginadas ou não).
-     *   Equivalente ao antigo findAll() mas com suporte a Pageable.
-     */
     public Page<Task> findAllPaged(Pageable pageable) {
         return taskRepository.findAll(pageable);
     }
 
-    /**
-     * 🔹 Busca tarefa por ID.
-     */
     public Optional<Task> findById(Long id) {
         return taskRepository.findById(id);
     }
 
-    /**
-     * 🔹 Cria ou atualiza tarefa aplicando defaults seguros.
-     */
     public Task save(Task task) {
+        if (task.getResponsible() == null) {
+            throw new IllegalArgumentException("Responsible user must be defined.");
+        }
+
         if (task.getExecutionStatus() == null || task.getExecutionStatus().isBlank())
             task.setExecutionStatus("PENDING");
 
@@ -97,9 +91,6 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    /**
-     * 🔹 Exclui tarefa pelo ID.
-     */
     public void delete(Long id) {
         taskRepository.deleteById(id);
     }

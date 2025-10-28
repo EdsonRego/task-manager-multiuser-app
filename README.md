@@ -1,7 +1,8 @@
+🧭 README (raiz do projeto — /taskmanager/README.md)
 # 🧭 Task Manager Multiuser App
 
 **Full-stack portfolio project** built with **Java Spring Boot** (backend) and **React + TypeScript + Vite** (frontend).  
-It provides a clean, corporate-style interface (SAP blue theme) for managing multiuser tasks efficiently.
+It provides a clean, corporate-style interface inspired by SAP’s blue theme, allowing multiple users to manage and track tasks efficiently.
 
 ![Java](https://img.shields.io/badge/Java-17-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-green)
@@ -17,118 +18,107 @@ It provides a clean, corporate-style interface (SAP blue theme) for managing mul
 
 ## 🌐 Overview
 
-The **Task Manager Multiuser App** is designed to manage and monitor personal and shared tasks within teams.  
-Each user can create, assign, and track tasks through an intuitive and responsive interface.
+The **Task Manager Multiuser App** allows users to create, assign, and track tasks collaboratively.  
+Each user can log in, view their assigned tasks, and update progress in a friendly and responsive interface.
 
-### ✳️ Features
-
-- ✅ User registration and login
-- ✅ Task creation, assignment, and tracking
-- ✅ Automatic task status updates (Pending, In Progress, Completed)
-- ✅ Automatic delay detection (Not Delayed / Delayed)
-- ✅ Email-ready notification architecture
-- ✅ Responsive SAP-blue UI with Bootstrap 5
-- ✅ Navigation bar + Footer with LinkedIn and GitHub links
+### ✳️ Key Features
+- 🔐 JWT-based authentication and login
+- ✅ Task creation, editing, and completion tracking
+- 📅 Automatic delay calculation (`DELAYED` / `NOT DELAYED`)
+- 🧠 Real-time task summary analytics (via SQL view + stored procedure)
+- 📧 Email-ready notification architecture
+- 🧰 Backend with Spring Boot 3 + PostgreSQL + Flyway
+- 🎨 Frontend with React + TypeScript + Bootstrap 5
 
 ---
 
-## 🏗️ Project Architecture
+## 🏗️ Project Structure
+
+
 
 taskmanager/
 ├── backend/ # Spring Boot backend (Java 17)
-│ ├── model/ # Entities (User, Task)
+│ ├── model/ # Entities: User, Task
 │ ├── repository/ # JPA Repositories
 │ ├── service/ # Business Logic
 │ ├── controller/ # REST Controllers
 │ ├── dto/ # Data Transfer Objects
+│ ├── security/ # JWT Auth configuration
+│ ├── config/ # Spring Boot and CORS setup
 │ └── resources/
-│ └── application.yml
+│ ├── application.yml
+│ └── db/migration/ # Flyway migrations and seeds
 │
-├── frontend/ # React + TypeScript + Vite
+├── frontend/ # React + TypeScript + Vite app
 │ ├── api/ # Axios configuration
 │ ├── components/ # Reusable UI components
-│ ├── pages/ # Page-level views (Login, Register, Home)
-│ ├── styles/ # SAP-style theme customization
-│ ├── types/ # TypeScript interfaces
-│ └── config/ # UI behavior configuration
+│ ├── pages/ # Login, Dashboard, User pages
+│ ├── styles/ # SAP-blue theme and layout
+│ └── types/ # TypeScript interfaces
 │
-└── docker-compose.yml # (future integration)
+└── docker-compose.yml # Full stack orchestration
 
-yaml
-Copiar código
 
 ---
 
 ## 🧰 Technologies
 
-### 🖥️ **Backend**
-- Java 17
-- Spring Boot 3.5.x
-- Spring Data JPA
-- Spring Web
-- PostgreSQL
-- Maven
-- Docker
-
-### 💻 **Frontend**
-- React 18
-- TypeScript 5
-- Vite 7
-- Axios
-- React Router DOM
-- Bootstrap 5
-- React Icons
+| Layer        | Technologies                                                                       |
+|--------------|------------------------------------------------------------------------------------|
+| **Backend**  | Java 17, Spring Boot 3.5.x, JPA, Security (JWT), Flyway, PostgreSQL, Maven, Docker |
+| **Frontend** | React 18, TypeScript 5, Vite 7, Axios, React Router, Bootstrap 5                   |
+| **DevOps**   | Docker Compose, H2 (test), Flyway migrations                                       |
 
 ---
 
-## 🧩 Database Schema
+## 🧩 Database Overview
 
-### **Table: users**
-| Column     | Type         | Description                |
-|------------|--------------|----------------------------|
-| id         | BIGSERIAL    | Primary key                |
-| first_name | VARCHAR(40)  | User’s first name          |
-| last_name  | VARCHAR(40)  | User’s last name           |
-| email      | VARCHAR(100) | Unique                     |
-| password   | VARCHAR(10)  | Alphanumeric (max 6 chars) |
-| created_at | TIMESTAMP    | Creation date              |
+### Table: `users`
+| Column     | Typ e        | Descrip tion         |
+|------------|--------------|----------------------|
+| id         | SERIAL (PK)  | Unique user ID       |
+| first_name | VARCHAR(50)  | User first name      |
+| last_name  | VARCHAR(50)  | User last name       |
+| email      | VARCHAR(100) | Unique email address |
+| password   | VARCHAR(255) | BCrypt hash          |
+| created_at | TIMESTAMP    | Registration date    |
 
-### **Table: tasks**
-| Column               | Type        | Description                       |
-|----------------------|-------------|-----------------------------------|
-| id                   | BIGSERIAL   | Primary key                       |
-| planned_description  | VARCHAR(40) | Planned description               |
-| executed_description | VARCHAR(40) | Optional                          |
-| creation_date        | DATE        | Auto-generated                    |
-| due_date             | DATE        | Task deadline                     |
-| execution_status     | VARCHAR(20) | Pending / In Progress / Completed |
-| task_situation       | VARCHAR(20) | Not Delayed / Delayed / Completed |
-| responsible_id       | BIGINT      | FK → users.id                     |
+### Table: `tasks`
+| Column               | Type        | Des cription                               |
+|----------------------|-------------|--------------------------------------------|
+| id                   | SERIAL (PK) | Task ID                                    |
+| planned_description  | TEXT        | Planned description                        |
+| executed_description | TEXT        | Executed/actual description                |
+| creation_date        | TIMESTAMP   | Auto-generated                             |
+| due_date             | TIMESTAMP   | Task deadline                              |
+| execution_status     | VARCHAR(20) | `PENDING`, `DONE`, or `CANCELLED`          |
+| task_situation       | VARCHAR(20) | `OPEN`, `CLOSED`, `DELAYED`, `NOT DELAYED` |
+| responsible_id       | INT (FK)    | References `users(id)`                     |
 
 ---
 
-## ⚙️ Running the Project
+## ⚙️ How to Run
 
-### 🔹 **Backend (Spring Boot)**
+### 🔹 Backend
 
 cd backend
 ./mvnw spring-boot:run
-Backend available at:
-👉 http://localhost:8080
 
-🔹 Frontend (React + Vite)
-bash
-Copiar código
+
+Access → http://localhost:8080
+
+🔹 Frontend
 cd frontend
 npm install
 npm run dev
-Frontend available at:
-👉 http://localhost:5173
 
-🔹 (Optional) Run with Docker Compose
-bash
-Copiar código
-docker-compose up --build
+
+Access → http://localhost:5173
+
+🔹 Docker Compose (recommended)
+docker compose up --build
+
+
 This will start:
 
 PostgreSQL
@@ -137,41 +127,30 @@ Spring Boot backend
 
 React frontend
 
-Access:
-👉 http://localhost:5173
+Then visit → http://localhost:5173
 
-🎨 User Interface
-Page	Description
-Login	Validates user credentials
-Register	Creates a new user account
-Home (Dashboard)	Displays task list, creation form, and status management
-NavigationBar	SAP-blue style header with navigation links and logout
-Footer	Responsive footer with LinkedIn and GitHub links
+📊 Analytics and Reporting
 
-🧪 Build & Test Status
+SQL view: vw_tasks_summary
+→ consolidates per-user task statistics (pending, done, delayed, etc.)
 
-
-
-(You can later enable GitHub Actions using Maven and Node.js workflows to automate builds.)
+Stored procedure: recalculate_completion_rate()
+→ dynamically calculates task completion and delay rates
 
 👨‍💻 Author
+
 Edson Gomes do Rego
 System Support Engineer & Full-Stack Developer
 São Paulo, Brazil
 
 🔗 LinkedIn
+
 💻 GitHub
 
 🧾 License
-This project is licensed under the MIT License — feel free to use, modify, and share with attribution.
 
-“Building reliable, maintainable and elegant systems — one commit at a time.”
+MIT License — You’re free to use, modify, and distribute with attribution.
 
-yaml
-Copiar código
+“Building reliable, maintainable, and elegant systems — one commit at a time.”
 
----
-
-💡 **Dica**:  
-Coloque este arquivo no diretório raiz do projeto (`taskmanager/`) e nomeie-o exatamente como:
-```` bash
+```bash

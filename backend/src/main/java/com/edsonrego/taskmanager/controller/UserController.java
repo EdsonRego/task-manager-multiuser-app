@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -72,6 +73,12 @@ public class UserController {
                     .body("User not found");
         }
         return ResponseEntity.ok(userOpt.get());
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmailExists(@RequestParam String email) {
+        boolean exists = userService.findByEmail(email).isPresent();
+        return ResponseEntity.ok(Map.of("exists", exists));
     }
 
     // 🔹 Cria novo usuário

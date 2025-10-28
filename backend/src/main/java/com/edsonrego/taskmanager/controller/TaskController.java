@@ -3,12 +3,15 @@ package com.edsonrego.taskmanager.controller;
 import com.edsonrego.taskmanager.model.Task;
 import com.edsonrego.taskmanager.model.User;
 import com.edsonrego.taskmanager.service.TaskService;
+import com.edsonrego.taskmanager.service.UserService;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
@@ -18,16 +21,13 @@ import java.util.Optional;
 public class TaskController {
 
     private final TaskService taskService;
+    private final UserService userService;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, UserService userService) {
         this.taskService = taskService;
+        this.userService = userService;
     }
 
-    /**
-     * 🔹 Lista todas as tarefas (compatível com o endpoint atual)
-     *    - Se paged=false → retorna lista completa
-     *    - Se paged=true  → retorna Page<Task> paginado e ordenado
-     */
     @GetMapping
     public ResponseEntity<?> getAllTasks(
             @RequestParam(defaultValue = "0") int page,
@@ -41,28 +41,20 @@ public class TaskController {
                 : Sort.by(sortBy).ascending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
-
-        // 🔹 Se "paged=false", devolve todos os registros
-        if (!paged) {
-            return ResponseEntity.ok(taskService.findAllPaged(Pageable.unpaged()).getContent());
-        }
-
-        // 🔹 Caso contrário, devolve paginação real
-        return ResponseEntity.ok(taskService.findAllPaged(pageable));
+        return !paged
+                ? ResponseEntity.ok(taskService.findAllPaged(Pageable.unpaged()).getContent())
+                : ResponseEntity.ok(taskService.findAllPaged(pageable));
     }
 
-    /**
-     * 🔹 Busca uma tarefa específica pelo ID
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getTaskById(@PathVariable Long id) {
-        Optional<Task> task = taskService.findById(id);
-        return task.<ResponseEntity<?>>map(ResponseEntity::ok)
+        return taskService.findById(id)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).body("Task not found"));
     }
 
     /**
-     * 🔹 Cria nova tarefa (responsável = usuário autenticado)
+     * 🔹 Create a new task using the authenticated user as responsible.
      */
     @PostMapping
     public ResponseEntity<?> createTask(@RequestBody Task task, Authentication authentication) {
@@ -70,38 +62,26 @@ public class TaskController {
             return ResponseEntity.badRequest().body("Planned description is required.");
         }
 
-        User authenticatedUser = null;
-        if (authentication != null && authentication.getPrincipal() instanceof User user) {
-            authenticatedUser = user;
-        }
-
-        if (authenticatedUser == null) {
-            System.out.println("⚠️ Nenhum usuário autenticado encontrado no contexto de segurança!");
+        if (authentication == null || !authentication.isAuthenticated()) {
+            System.out.println("⚠️ Authentication missing or invalid!");
             return ResponseEntity.status(401).body("User not authenticated.");
         }
 
-        // ✅ Define o responsável pela tarefa
-        task.setResponsible(authenticatedUser);
+        String email = authentication.getName();
+        User responsibleUser = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found: " + email));
 
-        // ✅ Define status em maiúsculo
-        if (task.getExecutionStatus() != null) {
+        task.setResponsible(responsibleUser);
+        if (task.getExecutionStatus() != null)
             task.setExecutionStatus(task.getExecutionStatus().toUpperCase());
-        }
-
-        // ✅ Define data de criação caso ausente
-        if (task.getCreationDate() == null) {
+        if (task.getCreationDate() == null)
             task.setCreationDate(LocalDate.now());
-        }
 
         Task saved = taskService.save(task);
-        System.out.println("💾 Tarefa criada com sucesso: " + task.getPlannedDescription());
+        System.out.println("💾 Task created successfully by " + responsibleUser.getEmail());
         return ResponseEntity.ok(saved);
     }
 
-
-    /**
-     * 🔹 Atualiza uma tarefa existente
-     */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody Task updatedTask) {
         Optional<Task> existing = taskService.findById(id);
@@ -110,19 +90,14 @@ public class TaskController {
         }
 
         Task task = existing.get();
-
         if (updatedTask.getPlannedDescription() != null)
             task.setPlannedDescription(updatedTask.getPlannedDescription());
-
         if (updatedTask.getExecutedDescription() != null)
             task.setExecutedDescription(updatedTask.getExecutedDescription());
-
         if (updatedTask.getExecutionStatus() != null)
             task.setExecutionStatus(updatedTask.getExecutionStatus());
-
         if (updatedTask.getTaskSituation() != null)
             task.setTaskSituation(updatedTask.getTaskSituation());
-
         if (updatedTask.getDueDate() != null)
             task.setDueDate(updatedTask.getDueDate());
 
@@ -131,9 +106,7 @@ public class TaskController {
     }
 
     /**
-     * 🔹 Pesquisa dinâmica de tarefas com múltiplos filtros opcionais
-     *    - Mantém compatibilidade com os parâmetros existentes
-     *    - Suporte real a paginação e ordenação no banco
+     * 🔎 Busca tarefas considerando apenas a data (ignorando hora)
      */
     @GetMapping("/search")
     public ResponseEntity<?> searchTasks(
@@ -154,7 +127,6 @@ public class TaskController {
             LocalDate creation = (creationDate != null && !creationDate.isBlank())
                     ? LocalDate.parse(creationDate)
                     : null;
-
             LocalDate due = (dueDate != null && !dueDate.isBlank())
                     ? LocalDate.parse(dueDate)
                     : null;
@@ -166,7 +138,8 @@ public class TaskController {
             Pageable pageable = paged ? PageRequest.of(page, size, sort) : Pageable.unpaged();
 
             var results = taskService.searchTasksPaged(
-                    status, situation, responsibleId, creation, due, id, description, pageable
+                    status, situation, responsibleId,
+                    creation, due, id, description, pageable
             );
 
             if (results.isEmpty()) return ResponseEntity.noContent().build();
@@ -174,13 +147,10 @@ public class TaskController {
 
         } catch (DateTimeParseException e) {
             return ResponseEntity.badRequest()
-                    .body("Invalid date format. Use ISO-8601 format (e.g., 2025-10-21).");
+                    .body("Invalid date format. Use ISO format (e.g., 2025-10-21).");
         }
     }
 
-    /**
-     * 🔹 Exclui uma tarefa
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteTask(@PathVariable Long id) {
         Optional<Task> existing = taskService.findById(id);

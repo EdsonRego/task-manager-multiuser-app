@@ -37,9 +37,12 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
 
 jwt:
+  # ✅ Chave forte e compatível com JwtService
   secret: Y2hhbmdlLXRob3Mtc3VwZXItc2VjcmV0LWtleS1hdC1sZWFzdC0zMi1ieXRlcy1sb25n
 
 app:
   cors:
     allowed-origins:
+      # ✅ Mantido (frontend Vite)
       - http://localhost:5173
+      - http://127.0.0.1:5173  # ← adicionado opcionalmente, compatível com testes locais

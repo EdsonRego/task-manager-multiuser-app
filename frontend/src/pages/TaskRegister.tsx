@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import TaskForm from "../components/TaskForm";
 import AlertMessage from "../components/AlertMessage";
 import ToastNotification from "../components/ToastNotification";
+import api from "../api/api";
 import { UI_CONFIG } from "../config/ui";
 
 const TaskRegister: React.FC = () => {
@@ -21,6 +22,7 @@ const TaskRegister: React.FC = () => {
     show: false,
   });
 
+  /** 🔔 Controla alertas e toasts */
   const handleAlert = (
     type: "success" | "danger" | "warning" | "info",
     message: string
@@ -34,6 +36,40 @@ const TaskRegister: React.FC = () => {
         () => setToast({ type, message, show: false }),
         UI_CONFIG.autoHide.toast
       );
+    }
+  };
+
+  /** 🧾 Função de envio do formulário */
+  const handleSubmit = async (taskData: any) => {
+    try {
+      console.groupCollapsed("📝 Envio de nova tarefa");
+      console.log("📤 Payload:", taskData);
+      console.groupEnd();
+
+      if (!taskData.responsible?.id) {
+        handleAlert("warning", "Please select a responsible user before saving.");
+        return;
+      }
+
+      const payload = {
+        plannedDescription: taskData.plannedDescription,
+        executedDescription: taskData.executedDescription || null,
+        creationDate: new Date().toISOString().split("T")[0],
+        dueDate: taskData.dueDate,
+        executionStatus: taskData.executionStatus?.toUpperCase() || "PENDING",
+        taskSituation: taskData.taskSituation?.toUpperCase() || "OPEN",
+        responsible: { id: taskData.responsible.id },
+      };
+
+      await api.post("/tasks", payload);
+      handleAlert("success", "Task created successfully!");
+    } catch (error: any) {
+      console.error("❌ Error creating task:", error);
+      if (error.response?.status === 401) {
+        handleAlert("danger", "Unauthorized. Please log in again.");
+      } else {
+        handleAlert("danger", "Error creating task. Please verify the data.");
+      }
     }
   };
 
@@ -61,7 +97,9 @@ const TaskRegister: React.FC = () => {
         <h5 className="card-title text-success text-center mb-3">
           Create New Task
         </h5>
-        <TaskForm onAlert={handleAlert} />
+
+        {/* 🔹 Passa handleSubmit para o componente de formulário */}
+        <TaskForm onAlert={handleAlert} onSubmit={handleSubmit} />
       </div>
 
       <ToastNotification

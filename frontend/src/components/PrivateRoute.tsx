@@ -2,8 +2,8 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 
 /**
- * Protege rotas autenticadas.
- * Verifica se há um token JWT no localStorage antes de renderizar o conteúdo.
+ * 🔒 PrivateRoute
+ * Bloqueia acesso a rotas privadas sem token válido.
  */
 interface PrivateRouteProps {
   element: React.ReactElement;
@@ -11,9 +11,10 @@ interface PrivateRouteProps {
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ element }) => {
   const token = localStorage.getItem("token");
+  const isAuthenticated = !!token && token !== "undefined" && token.trim() !== "";
 
-  if (!token || token === "undefined" || token.trim() === "") {
-    console.warn("🔒 Acesso bloqueado — token ausente ou inválido, redirecionando para login.");
+  if (!isAuthenticated) {
+    console.warn("🚫 Acesso negado — usuário não autenticado.");
     return <Navigate to="/" replace />;
   }
 

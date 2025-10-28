@@ -96,3 +96,19 @@
     gap: 0.75rem !important;
   }
 }
+
+/* container geral da página de busca/dashboard */
+.task-search-container {
+  padding: 8px 16px;
+}
+
+/* cartão de filtros – agora ocupa a MESMA largura da tabela (100% do container) */
+.task-search-card {
+  width: 100%;
+  max-width: 1200px;        /* ajuste fino: mesma largura “visual” da tabela */
+  margin: 0 auto;           /* centraliza */
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* tabela já usa .table-responsive no componente, então ocupará 100% também */

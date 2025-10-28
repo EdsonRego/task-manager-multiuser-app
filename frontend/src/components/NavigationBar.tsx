@@ -1,16 +1,43 @@
-// frontend/src/components/NavigationBar.tsx
 import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { Navbar, Container, Nav } from "react-bootstrap";
-import { BsPersonPlus, BsPencilSquare, BsClipboardData, BsSearch } from "react-icons/bs";
+import { BsPersonPlus, BsPencilSquare, BsClipboardData } from "react-icons/bs";
 
-const NavigationBar: React.FC = () => {
+interface NavigationBarProps {
+  isAuthenticated?: boolean;
+}
+
+/**
+ * 🔝 NavigationBar
+ * - Exibida apenas em rotas privadas (controlado pelo LayoutWrapper)
+ * - Mantém design original com Bootstrap
+ * - Gerencia logout e redirecionamento seguro
+ */
+const NavigationBar: React.FC<NavigationBarProps> = ({ isAuthenticated }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
+    console.log("🚪 Logout acionado — limpando sessão e redirecionando...");
+    localStorage.removeItem("token");
     localStorage.removeItem("user");
-    navigate("/");
+    sessionStorage.clear();
+    navigate("/", { replace: true });
+    window.location.reload();
   };
+
+  /** 🎨 Estilo dinâmico dos links */
+  const linkStyle = (isActive: boolean) =>
+    `nav-link d-flex align-items-center gap-1 ${
+      isActive ? "fw-bold text-warning" : "text-white"
+    }`;
+
+  /** 🔒 Bloqueia rotas não autenticadas */
+  const disableLinks = !isAuthenticated;
+
+  /** ⛔ Oculta completamente Navbar em rotas públicas */
+  const isPublicPage = ["/", "/register"].includes(location.pathname);
+  if (isPublicPage) return null;
 
   return (
     <Navbar
@@ -19,10 +46,12 @@ const NavigationBar: React.FC = () => {
       style={{ backgroundColor: "var(--primary)" }}
     >
       <Container>
-        {/* Logo + título */}
+        {/* 🔹 Brand */}
         <Navbar.Brand
-          href="/"
+          href="/dashboard"
           className="text-white fw-bold d-flex align-items-center gap-2"
+          style={{ cursor: disableLinks ? "default" : "pointer" }}
+          onClick={(e) => disableLinks && e.preventDefault()}
         >
           <img src="/logo.png" alt="Task Manager Logo" className="app-logo me-2" />
           Task Manager
@@ -31,78 +60,53 @@ const NavigationBar: React.FC = () => {
         <Navbar.Toggle aria-controls="navbar-nav" className="border-0 bg-light" />
 
         <Navbar.Collapse id="navbar-nav" className="justify-content-between">
-          {/* Links à esquerda */}
           <Nav>
-            <NavLink
-              to="/"
-              end
-              className={({ isActive }) =>
-                `nav-link d-flex align-items-center gap-1 ${
-                  isActive ? "fw-bold text-warning" : "text-white"
-                }`
-              }
-            >
-              🔑 Login
-            </NavLink>
-
-            <NavLink
-              to="/register"
-              className={({ isActive }) =>
-                `nav-link d-flex align-items-center gap-1 ${
-                  isActive ? "fw-bold text-warning" : "text-white"
-                }`
-              }
-            >
-              <BsPersonPlus size={18} />
-              User Register
-            </NavLink>
-
-            <NavLink
-              to="/task-register"
-              className={({ isActive }) =>
-                `nav-link d-flex align-items-center gap-1 ${
-                  isActive ? "fw-bold text-warning" : "text-white"
-                }`
-              }
-            >
-              <BsPencilSquare size={18} />
-              Task Register
-            </NavLink>
-
+            {/* 🔹 Dashboard */}
             <NavLink
               to="/dashboard"
-              className={({ isActive }) =>
-                `nav-link d-flex align-items-center gap-1 ${
-                  isActive ? "fw-bold text-warning" : "text-white"
-                }`
-              }
+              className={({ isActive }) => linkStyle(isActive)}
+              style={{ cursor: disableLinks ? "not-allowed" : "pointer" }}
+              onClick={(e) => disableLinks && e.preventDefault()}
             >
               <BsClipboardData size={18} />
               Dashboard
             </NavLink>
 
+            {/* 🔹 Task Register */}
             <NavLink
-              to="/task-search"
-              className={({ isActive }) =>
-                `nav-link d-flex align-items-center gap-1 ${
-                  isActive ? "fw-bold text-warning" : "text-white"
-                }`
-              }
+              to="/task-register"
+              className={({ isActive }) => linkStyle(isActive)}
+              style={{ cursor: disableLinks ? "not-allowed" : "pointer" }}
+              onClick={(e) => disableLinks && e.preventDefault()}
             >
-              <BsSearch size={18} />
-              Task Search
+              <BsPencilSquare size={18} />
+              Task Register
             </NavLink>
+
+            {/* 🔹 User Register (somente se autenticado) */}
+            {isAuthenticated && (
+              <NavLink
+                to="/register"
+                className={({ isActive }) => linkStyle(isActive)}
+                style={{ cursor: "pointer" }}
+              >
+                <BsPersonPlus size={18} />
+                User Register
+              </NavLink>
+            )}
           </Nav>
 
-          {/* Botão Logout à direita */}
-          <Nav>
-            <button
-              onClick={handleLogout}
-              className="btn btn-outline-light fw-semibold ms-3"
-            >
-              🚪 Logout
-            </button>
-          </Nav>
+          {/* 🔹 Logout Button */}
+          {isAuthenticated && (
+            <Nav>
+              <button
+                onClick={handleLogout}
+                className="btn btn-outline-light fw-semibold ms-3"
+              >
+                🚪 Logout
+              </button>
+            </Nav>
+          )}
         </Navbar.Collapse>
       </Container>
     </Navbar>

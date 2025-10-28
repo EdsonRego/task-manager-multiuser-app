@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import type { User } from "../types/User";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
+import AlertMessage from "./AlertMessage";
+import ToastNotification from "./ToastNotification";
+import { UI_CONFIG } from "../config/ui";
+import logo from "../assets/logo.png";
 
 const RegisterUser: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -9,29 +13,66 @@ const RegisterUser: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [alert, setAlert] = useState<{
+    type: "success" | "danger" | "warning" | "info";
+    message: string;
+  } | null>(null);
+
+  const [toast, setToast] = useState<{
+    type: "success" | "danger" | "warning" | "info";
+    message: string;
+    show: boolean;
+  }>({
+    type: "info",
+    message: "",
+    show: false,
+  });
+
   const navigate = useNavigate();
+
+  const handleAlert = (
+    type: "success" | "danger" | "warning" | "info",
+    message: string
+  ) => {
+    if (UI_CONFIG.useAlertsFor.includes(type)) {
+      setAlert({ type, message });
+      setTimeout(() => setAlert(null), UI_CONFIG.autoHide.alert);
+    } else if (UI_CONFIG.useToastsFor.includes(type)) {
+      setToast({ type, message, show: true });
+      setTimeout(() => setToast({ type, message, show: false }), UI_CONFIG.autoHide.toast);
+    }
+  };
+
+  /** ✉️ Valida formato de e-mail */
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleRegister = async () => {
     if (!firstName || !lastName || !email || !password) {
-      alert("Please fill in all fields.");
+      handleAlert("warning", "Please fill in all fields.");
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      handleAlert("warning", "Please enter a valid email address.");
       return;
     }
 
     setLoading(true);
     try {
-      const existing = await api.get<User[]>("/users");
-      const emailExists = existing.data.some((u) => u.email === email);
+      const res = await api.get(`/users/check-email`, { params: { email } });
+      const emailExists = res.data.exists;
 
       if (!emailExists) {
         await api.post("/users", { firstName, lastName, email, password });
-        alert("✅ User registered successfully!");
-        navigate("/");
+        handleAlert("success", "✅ User registered successfully!");
+        setTimeout(() => navigate("/"), 1000);
       } else {
-        alert("Email already registered. Try another one.");
+        handleAlert("danger", "Email already registered. Try another one.");
       }
     } catch (err) {
       console.error("❌ Registration error:", err);
-      alert("Error during registration.");
+      handleAlert("danger", "Error during registration.");
     } finally {
       setLoading(false);
     }
@@ -55,10 +96,18 @@ const RegisterUser: React.FC = () => {
         }}
       >
         <div className="text-center mb-4">
-          <img src="/logo.png" alt="Logo" height={70} className="mb-2" />
+          <img src={logo} alt="Logo" height={70} className="mb-2" />
           <h2 className="text-primary fw-bold mb-1">User Registration</h2>
           <p className="text-muted small">Create your Task Manager account</p>
         </div>
+
+        {alert && (
+          <AlertMessage
+            type={alert.type}
+            message={alert.message}
+            onClose={() => setAlert(null)}
+          />
+        )}
 
         {/* Campos */}
         <div className="mb-3">
@@ -121,6 +170,13 @@ const RegisterUser: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <ToastNotification
+        type={toast.type}
+        message={toast.message}
+        show={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
     </div>
   );
 };

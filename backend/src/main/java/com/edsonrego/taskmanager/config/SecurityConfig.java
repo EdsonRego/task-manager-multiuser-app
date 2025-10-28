@@ -20,17 +20,17 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.io.PrintWriter;
 import java.util.List;
 
+/**
+ * 🔐 Security configuration for JWT authentication and authorization.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JwtAuthenticationFilter jwtFilter
-    ) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
 
-        // Handlers apenas para log e diagnóstico
+        // 🔸 Custom handlers for diagnostics
         AuthenticationEntryPoint entryPoint = (request, response, authException) -> {
             System.out.println("🔴 401 Unauthorized: " + authException.getMessage() +
                     " | URI=" + request.getRequestURI());
@@ -49,47 +49,47 @@ public class SecurityConfig {
             }
         };
 
+        // 🔸 Main configuration
         http
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())
 
-                // ✅ CORS configurado diretamente no Security
+                // ✅ CORS compatible with frontend (Vite)
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(List.of(
                             "http://localhost:5173",
                             "http://127.0.0.1:5173"
                     ));
-                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+                    config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
                     config.setExposedHeaders(List.of("Authorization"));
                     config.setAllowCredentials(true);
+                    config.setMaxAge(3600L);
                     return config;
                 }))
 
+                // ✅ Authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ Libera pré-flight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // ✅ Endpoints públicos
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/users").permitAll()
-                        .requestMatchers("/api/users/find").permitAll()
+                        .requestMatchers("/api/users/register", "/api/users/check-email").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // ✅ permite criação de usuário
                         .requestMatchers("/actuator/health").permitAll()
-
-                        // ✅ Demais rotas exigem autenticação
                         .anyRequest().authenticated()
                 )
 
-                // ✅ Stateless e logs personalizados
+                // ✅ Stateless session for JWT
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // ✅ Custom error handling
                 .exceptionHandling(eh -> eh
                         .authenticationEntryPoint(entryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
                 )
 
-                // ✅ Filtro JWT antes da autenticação padrão
+                // ✅ Add JWT filter before UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

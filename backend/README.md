@@ -1,225 +1,95 @@
-# 🗂️ Task Manager Multiuser App
+# 🗂️ **README (backend — `/backend/README.md`)**
+
+# 🗂️ Task Manager — Backend (Spring Boot)
 
 ## 📘 Overview
-
-**Task Manager** is a multi-user task management web application that allows users to create, assign, and track tasks — either for themselves or others — with deadlines, progress status, and completion tracking.
-
-It is designed to demonstrate professional full-stack development practices using **Java (Spring Boot)** on the backend and **React + TypeScript** on the frontend.
+This backend powers the **Task Manager Multiuser App**, providing secure REST APIs for user and task management.  
+Built with **Spring Boot 3**, it integrates JWT authentication, PostgreSQL persistence, and Flyway migrations.
 
 ---
 
-## 🎯 Objective
-
-Provide a simple yet complete environment for managing tasks among multiple users, where each user can register, log in, create new tasks, assign tasks to other users, and update execution progress until completion.
-
----
-
-## ⚙️ Technologies Used
-
-### Backend
-- **Java 17+**
-- **Spring Boot 3.x**
-    - Spring Web (RESTful APIs)
-    - Spring Data JPA (ORM)
-    - Spring Security (Authentication and Authorization)
-    - Validation (Jakarta Validation API)
-    - Flyway (Database migration control)
-    - PostgreSQL Driver
-    - Spring Boot DevTools (Development utilities)
-    - Spring Boot Starter Test (JUnit 5 and Mockito)
-- **Maven** (Build and dependency management)
-- **Docker** (Containerization)
-- **Docker Compose** (Service orchestration)
-- **PostgreSQL** (Relational Database)
-
-### Frontend (to be implemented)
-- **React 18+**
-- **TypeScript**
-- **Vite** (Development bundler)
-- **Axios** (HTTP communication)
-- **TailwindCSS** (UI styling)
-- **React Router** (Routing)
-- **ESLint + Prettier** (Code quality and formatting)
+## ⚙️ Stack
+- **Java 17**, **Spring Boot 3.5**
+- Spring Web, Spring Data JPA, Spring Security (JWT)
+- PostgreSQL + Flyway
+- Maven build tool
+- Docker & Docker Compose
+- JUnit 5 + Mockito for testing
 
 ---
 
-## 🏗️ Project Structure
-
-task-manager-multiuser-app/
-├─ backend/ # Spring Boot API
-│ ├─ src/
-│ ├─ pom.xml
-│ ├─ Dockerfile
-│ └─ ...
-├─ frontend/ # React + TypeScript app (coming soon)
-├─ docker-compose.yml # Orchestrates backend, database, and future frontend
-├─ README.md
-└─ .git/
+## 🏗️ Key Packages
+com.edsonrego.taskmanager
+├── config/ # CORS, Security, Application setup
+├── controller/ # REST endpoints (Auth, User, Task)
+├── dto/ # Data Transfer Objects
+├── model/ # Entities: User, Task
+├── repository/ # Spring Data JPA repositories
+├── security/ # JWT filter and utilities
+├── service/ # Business logic
+└── resources/
+├── application.yml
+└── db/migration/ # Flyway SQL migrations
 
 yaml
 Copiar código
 
 ---
 
-## 🧭 Functional Specification
+## 🧩 Database and Migrations
+All schema changes are managed by **Flyway** under `src/main/resources/db/migration`.
 
-### 1️⃣ Welcome Screen
-
-**Elements:**
-- **Welcome Message:** configurable in the settings panel.
-- **Email Input:** for existing user validation.
-- **Password Input:** alphanumeric, up to 6 characters.
-- **Access Button:** triggers login validation.
-    - If credentials are invalid → show message: *"User or password not registered."*
-- **“First Access” Link:** opens user registration screen.
-
----
-
-### 2️⃣ User Registration Screen
-
-**Fields:**
-- **Name:** required
-- **Last Name:** required
-- **Email:** required, must be unique
-- **Password:** required, alphanumeric, up to 6 characters
-
-**Behavior:**
-- If the email does not exist → user is created and redirected to the login screen.
-- If the email already exists → a new password is sent to the registered email and the user is redirected to the login screen.
+| Migration  | Purpose                                                           |
+|------------|-------------------------------------------------------------------|
+| V1–V3      | Create base tables and seed data                                  |
+| V4         | Add constraints and indexes                                       |
+| V5         | Add test data for dashboards                                      |
+| V6         | Create analytical view `vw_tasks_summary`                         |
+| V7         | Create procedure `recalculate_completion_rate()`                  |
+| V8–V10     | Expand constraints, view, and procedure for delayed/on-time logic |
 
 ---
 
-### 3️⃣ Home Screen
-
-Displayed after successful login.  
-Contains navigation options:
-- **Task Query**
-- **Task Registration**
-- **User Management**
-
----
-
-### 4️⃣ Task Query Screen
-
-Displays all existing tasks in a table format.
-
-**Columns:**
-
-| Field                          | Description                                                                                      |
-|--------------------------------|--------------------------------------------------------------------------------------------------|
-| **Task ID**                    | Unique ID generated when the task is created                                                     |
-| **Planned Task Description**   | Up to 40 characters, required                                                                    |
-| **Executed Task Description**  | Up to 40 characters, optional at creation, required at completion                                |
-| **Creation Date**              | Auto-generated by the system (format: dd/mm/yyyy)                                                |
-| **Due Date**                   | Selected by user via calendar input                                                              |
-| **Execution Status**           | `Pending`, `In Progress`, or `Completed` (controlled by user actions)                            |
-| **Task Situation**             | Automatically set to `Not Delayed`, `Delayed`, or `Completed` based on due date and current date |
-| **Conclusion Checkbox/Button** | Enabled only if “Executed Task Description” is filled                                            |
-| **Responsible User**           | Selected from a dropdown of registered users                                                     |
+## 🔐 Authentication
+- Login endpoint: `/api/auth/login`
+- JWT generation: `JwtService`
+- Token validation: `JwtAuthenticationFilter`
+- Passwords hashed with BCrypt
+- Stateless sessions (`SessionCreationPolicy.STATELESS`)
 
 ---
 
-### 5️⃣ Task Registration Screen
+## 📈 Reports & Analytics
+- **View:** `vw_tasks_summary` — user-based performance overview  
+- **Procedure:** `recalculate_completion_rate()` — returns completion and delay rates dynamically
 
-**Required Fields:**
-- **Planned Task Description** (max 40 chars)
-- **Due Date** (calendar input)
-- **Responsible User** (dropdown of registered users)
+Example:
+sql
+SELECT * FROM recalculate_completion_rate();
+🚀 Run Locally
+bash
+Copiar código
+./mvnw spring-boot:run
+API → http://localhost:8080/api
 
-**Behavior:**
-- When the user clicks **Save**:
-    1. The task is recorded in the `tasks` table.
-    2. A confirmation message is displayed showing:
-        - Task number
-        - Responsible user’s name and email
-    3. An email notification is sent to the responsible user.
+To run via Docker:
 
----
+bash
+Copiar código
+docker compose up --build
+🧠 Future Enhancements
+Email notifications
 
-### 6️⃣ User Management Screen
+Role-based authorization
 
-Allows the creation and maintenance of user accounts.
-
-**Fields:**
-- **Name** (required)
-- **Last Name** (required)
-- **Email** (required, unique)
-- **Password** (required, alphanumeric, up to 6 characters)
-
-**Behavior:**
-- If the email does not exist → user is created and redirected to the home screen.
-- If the email already exists → a new password is sent to the user’s email and the system redirects to the home screen.
-
----
-
-## 🧮 Database Schema
-
-### Table: `users`
-
-| Column     | Type         | Description                   |
-|------------|--------------|-------------------------------|
-| id         | SERIAL (PK)  | Unique identifier             |
-| first_name | VARCHAR(40)  | User’s first name             |
-| last_name  | VARCHAR(40)  | User’s last name              |
-| email      | VARCHAR(100) | Unique email address          |
-| password   | VARCHAR(10)  | Alphanumeric password         |
-| created_at | TIMESTAMP    | Automatically set on creation |
-
----
-
-### Table: `tasks`
-
-| Column                | Type         | Description                              |
-|-----------------------|--------------|------------------------------------------|
-| id                    | SERIAL (PK)  | Unique identifier                        |
-| planned_description   | VARCHAR(40)  | Task description (planned)               |
-| executed_description  | VARCHAR(40)  | Task description (executed)              |
-| creation_date         | DATE         | Auto-generat ed                          |
-| due_date              | DATE         | Selected by user                         |
-| execution_status      | VARCHAR(20)  | `Pending`, `In Progress`, or `Completed` |
-| task_situation        | VARCHAR(20)  | `Not Delayed`, `Delayed`, or `Completed` |
-| responsible_id        | INTEGER (FK) | References `users(id)`                   |
-
----
-
-## 🐳 Containerization
-
-The project uses **Docker** for containerization and **Docker Compose** for orchestration.
-
-- The backend runs on **Spring Boot (Java)**
-- The database runs on **PostgreSQL**
-- Future services (frontend, monitoring tools, etc.) will be added to the same Compose network.
-
----
-
-## 🚀 Running the Project (to be implemented)
-
-After Docker setup is complete, the project will be started with:
-
-docker-compose up --build
-Backend will be available at:
-👉 http://localhost:8080
-
-Frontend (when implemented) will be available at:
-👉 http://localhost:3000
-
-🧠 Future Improvements
-JWT-based authentication
-
-Email service using Spring Mail
-
-Task filtering and sorting
-
-Internationalization (i18n)
-
-Docker environment for frontend
+Advanced reporting endpoints
 
 Unit and integration test coverage
 
 👨‍💻 Author
 Edson Gomes do Rego
-System Support Engineer & Full Stack Developer
+System Support Engineer & Full-Stack Developer
 São Paulo, Brazil
-GitHub
+🔗 GitHub
 
 ```bash
