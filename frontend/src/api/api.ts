@@ -26,13 +26,8 @@ console.log("➡️ Token presente no localStorage:", token ? "✅ SIM" : "❌ N
 console.groupEnd();
 
 // ✅ Só adiciona o Authorization se o token for realmente válido
-    if (
-token &&
-token !== "null" &&
-token !== "undefined" &&
-token.trim() !== ""
-) {
-config.headers = {
+    if (token && token !== "null" && token !== "undefined" && token.trim() !== "") {
+(config.headers as any) = {
 ...config.headers,
 Authorization: `Bearer ${token}`,
 };
@@ -75,9 +70,7 @@ msg.includes("unauthorized") ||
 url.includes("/auth");
 
 if (isAuthError) {
-console.warn(
-"⚠️ Token expirado ou inválido. Limpando sessão e redirecionando..."
-);
+console.warn("⚠️ Token expirado ou inválido. Limpando sessão e redirecionando...");
 localStorage.removeItem("token");
 localStorage.removeItem("user");
 if (!window.location.pathname.includes("/login")) {

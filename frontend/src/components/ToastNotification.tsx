@@ -38,7 +38,7 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({
 
   return (
     <ToastContainer
-      position={UI_CONFIG.toastPosition || "bottom-end"} // posição vinda da configuração
+      position={(UI_CONFIG.toastPosition as any) || "bottom-end"}
       className="p-3"
     >
       <Toast

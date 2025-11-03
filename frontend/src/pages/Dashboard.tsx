@@ -9,18 +9,6 @@ import TaskModal from "../components/TaskModal";
 import ToastNotification from "../components/ToastNotification";
 import "../styles/TaskSearch.css";
 
-/** 🔧 Normaliza data no formato ISO (yyyy-mm-dd) */
-const normalizeDate = (dateString: string): string | null => {
-  if (!dateString) return null;
-  const cleaned = dateString.replaceAll("/", "-").trim();
-  const [year, month, day] = cleaned.split("-");
-  // detecta se está no formato dd-mm-yyyy
-  if (Number(year) < 1900 && day) {
-    return `${day.padStart(2, "0")}-${month.padStart(2, "0")}-${year}`;
-  }
-  return cleaned; // já está em ISO
-};
-
 const Dashboard: React.FC = () => {
   const [filters, setFilters] = useState({
     description: "",
@@ -35,12 +23,7 @@ const Dashboard: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Task; direction: "asc" | "desc" }>({
-    key: "id",
-    direction: "asc",
-  });
 
-  // 🪄 Toast state
   const [toast, setToast] = useState<{
     type: "success" | "danger" | "warning" | "info";
     message: string;
@@ -67,7 +50,6 @@ const Dashboard: React.FC = () => {
     try {
       const params = new URLSearchParams();
 
-      // ✅ Corrige formato das datas antes do envio
       const creationDateISO = filters.createDate ? filters.createDate : "";
       const dueDateISO = filters.dueDate ? filters.dueDate : "";
 
@@ -101,30 +83,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  /** 🔃 Ordena localmente (clicando no cabeçalho) */
-  const handleSort = (key: keyof Task) => {
-    let direction: "asc" | "desc" = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-
-    const sortedTasks = [...tasks].sort((a, b) => {
-      const aVal = a[key] ?? "";
-      const bVal = b[key] ?? "";
-
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        return direction === "asc" ? aVal - bVal : bVal - aVal;
-      }
-
-      return direction === "asc"
-        ? String(aVal).localeCompare(String(bVal))
-        : String(bVal).localeCompare(String(aVal));
-    });
-
-    setTasks(sortedTasks);
-  };
-
   /** 🧹 Limpa filtros */
   const handleClear = () => {
     setFilters({
@@ -156,9 +114,10 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  /** 🗑️ Exclusão com confirmação via Toast (sem popup nativo) */
-  const handleDelete = async (taskId: number) => {
-    // Primeiro clique: pede confirmação
+  /** 🗑️ Exclusão com confirmação via Toast */
+  const handleDelete = async (taskId?: number) => {
+    if (!taskId) return;
+
     if (lastDeleteAttempt !== taskId) {
       setLastDeleteAttempt(taskId);
       setToast({
@@ -170,7 +129,6 @@ const Dashboard: React.FC = () => {
       return;
     }
 
-    // Segundo clique (confirmação)
     try {
       await api.delete(`/tasks/${taskId}`);
       setToast({
@@ -194,7 +152,6 @@ const Dashboard: React.FC = () => {
     <div className="task-search-container">
       <h1 className="text-center text-primary fw-bold mb-4">📋 Task Dashboard</h1>
 
-      {/* 🔹 Filtros */}
       <TaskFilters
         filters={filters}
         setFilters={setFilters}
@@ -204,19 +161,14 @@ const Dashboard: React.FC = () => {
         loading={loading}
       />
 
-      {/* 🔹 Tabela de resultados */}
       <TaskTable
         tasks={tasks}
         onSelectTask={handleSelectTask}
         onDeleted={handleDelete}
-        onSort={handleSort}
-        sortConfig={sortConfig}
       />
 
-      {/* 🔹 Modal de edição */}
       {selectedTask && <TaskModal task={selectedTask} onClose={handleModalClose} />}
 
-      {/* 🔹 Toast Notification */}
       <ToastNotification
         type={toast.type}
         message={toast.message}

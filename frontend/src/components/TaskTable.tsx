@@ -11,7 +11,6 @@ interface Props {
 
 const PAGE_SIZE = 8;
 
-/** 🔧 Converte data ISO (yyyy-mm-dd) → dd/mm/yyyy para exibição */
 const formatDate = (dateString?: string): string => {
   if (!dateString) return "-";
   const date = new Date(dateString);
@@ -31,7 +30,6 @@ const TaskTable: React.FC<Props> = ({ tasks, onSelectTask, onDeleted }) => {
 
   const totalPages = Math.ceil(tasks.length / PAGE_SIZE);
 
-  // 🔹 Ordenação local
   const sortedTasks = React.useMemo(() => {
     if (!sortConfig) return tasks;
     const sorted = [...tasks].sort((a, b) => {
@@ -82,37 +80,16 @@ const TaskTable: React.FC<Props> = ({ tasks, onSelectTask, onDeleted }) => {
     <>
       <div className="task-list-container table-responsive mt-4">
         <table className="table table-striped table-hover align-middle shadow-sm">
-          <thead
-            className="text-white"
-            style={{
-              backgroundColor: "#003366",
-              borderBottom: "3px solid #0d6efd",
-              cursor: "pointer",
-            }}
-          >
+          <thead className="text-white" style={{ backgroundColor: "#003366", borderBottom: "3px solid #0d6efd" }}>
             <tr>
               <th onClick={() => handleSort("id")}>ID {getSortIcon("id")}</th>
-              <th onClick={() => handleSort("plannedDescription")}>
-                Planned {getSortIcon("plannedDescription")}
-              </th>
-              <th onClick={() => handleSort("executedDescription")}>
-                Executed {getSortIcon("executedDescription")}
-              </th>
-              <th onClick={() => handleSort("creationDate")}>
-                Created {getSortIcon("creationDate")}
-              </th>
-              <th onClick={() => handleSort("dueDate")}>
-                Due {getSortIcon("dueDate")}
-              </th>
-              <th onClick={() => handleSort("executionStatus")}>
-                Status {getSortIcon("executionStatus")}
-              </th>
-              <th onClick={() => handleSort("taskSituation")}>
-                Situation {getSortIcon("taskSituation")}
-              </th>
-              <th onClick={() => handleSort("responsibleName")}>
-                Responsible {getSortIcon("responsibleName")}
-              </th>
+              <th onClick={() => handleSort("plannedDescription")}>Planned {getSortIcon("plannedDescription")}</th>
+              <th onClick={() => handleSort("executedDescription")}>Executed {getSortIcon("executedDescription")}</th>
+              <th onClick={() => handleSort("creationDate")}>Created {getSortIcon("creationDate")}</th>
+              <th onClick={() => handleSort("dueDate")}>Due {getSortIcon("dueDate")}</th>
+              <th onClick={() => handleSort("executionStatus")}>Status {getSortIcon("executionStatus")}</th>
+              <th onClick={() => handleSort("taskSituation")}>Situation {getSortIcon("taskSituation")}</th>
+              <th>Responsible</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -134,18 +111,12 @@ const TaskTable: React.FC<Props> = ({ tasks, onSelectTask, onDeleted }) => {
                   <td>{formatDate(t.dueDate)}</td>
                   <td>{t.executionStatus}</td>
                   <td>{t.taskSituation}</td>
-                  <td>{t.responsible?.firstName || t.responsibleName}</td>
+                  <td>{t.responsible?.firstName || "-"}</td>
                   <td>
-                    <button
-                      className="btn btn-sm btn-outline-primary me-2"
-                      onClick={() => onSelectTask(t)}
-                    >
+                    <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onSelectTask(t)}>
                       Edit
                     </button>
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleDelete(t)}
-                    >
+                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(t)}>
                       Delete
                     </button>
                   </td>
@@ -156,36 +127,19 @@ const TaskTable: React.FC<Props> = ({ tasks, onSelectTask, onDeleted }) => {
         </table>
       </div>
 
-      {/* Paginação simples */}
       {totalPages > 1 && (
         <div className="d-flex justify-content-center align-items-center gap-3 mt-3">
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            disabled={page === 1}
-            onClick={() => setPage((p) => p - 1)}
-          >
+          <button className="btn btn-sm btn-outline-secondary" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
             ◀ Prev
           </button>
-          <span className="fw-semibold">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            disabled={page === totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
+          <span className="fw-semibold">Page {page} of {totalPages}</span>
+          <button className="btn btn-sm btn-outline-secondary" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>
             Next ▶
           </button>
         </div>
       )}
 
-      {/* Toast visual */}
-      <ToastNotification
-        type={toast.type}
-        message={toast.message}
-        show={toast.show}
-        onClose={() => setToast({ ...toast, show: false })}
-      />
+      <ToastNotification type={toast.type} message={toast.message} show={toast.show} onClose={() => setToast({ ...toast, show: false })} />
     </>
   );
 };

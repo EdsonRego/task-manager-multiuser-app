@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import type { User } from "../types/User";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
 import AlertMessage from "./AlertMessage";

@@ -21,7 +21,8 @@ import java.io.PrintWriter;
 import java.util.List;
 
 /**
- * 🔐 Security configuration for JWT authentication and authorization.
+ * 🔐 Security configuration for JWT authentication and static frontend access.
+ * Compatible with Spring Boot 3.5.6 (Spring Security 6.x).
  */
 @Configuration
 @EnableWebSecurity
@@ -30,7 +31,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
 
-        // 🔸 Custom handlers for diagnostics
+        // 🔸 Custom handlers for unauthorized and forbidden responses
         AuthenticationEntryPoint entryPoint = (request, response, authException) -> {
             System.out.println("🔴 401 Unauthorized: " + authException.getMessage() +
                     " | URI=" + request.getRequestURI());
@@ -55,7 +56,7 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())
 
-                // ✅ CORS compatible with frontend (Vite)
+                // ✅ CORS configuration compatible with frontend (Vite)
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(List.of(
@@ -72,11 +73,21 @@ public class SecurityConfig {
 
                 // ✅ Authorization rules
                 .authorizeHttpRequests(auth -> auth
+                        // Permite pré-flight CORS e páginas estáticas
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 🔓 Libera acesso às páginas estáticas do React
+                        .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico").permitAll()
+
+                        // 🔓 Libera endpoints públicos (auth e cadastro)
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/register", "/api/users/check-email").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // ✅ permite criação de usuário
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+
+                        // 🔓 Libera monitoramento e console H2
+                        .requestMatchers("/actuator/health", "/h2-console/**").permitAll()
+
+                        // 🔒 Exige autenticação para todas as demais rotas
                         .anyRequest().authenticated()
                 )
 
@@ -91,6 +102,9 @@ public class SecurityConfig {
 
                 // ✅ Add JWT filter before UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // ✅ Permite o console H2 funcionar corretamente (frames)
+        http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();
     }
